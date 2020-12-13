@@ -317,8 +317,9 @@
 ;;; python
 (setq python-indent-guess-indent-offset nil
       python-shell-interpreter "python3"
+      org-babel-python-command "python3"
       elpy-rpc-python-command "python3"
-      org-babel-python-command "python3")
+      elpy-shell-display-buffer-after-send t)
 
 (+setq-hook 'python-mode-hook
 	    outline-regexp "## "
