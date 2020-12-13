@@ -26,11 +26,13 @@
 				  dired-filter
 				  dired-rsync
                                   company
+				  flycheck
                                   pyim
                                   posframe
                                   auctex
                                   cdlatex
-                                  htmlize))
+                                  htmlize
+				  elpy))
 
 (require 'package)
 
@@ -228,10 +230,7 @@
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "C-x m") 'imenu)
 
-(require 'projectile)
-
-(global-set-key (kbd "C-c p") projectile-command-map)
-(global-set-key (kbd "C-c C-p") projectile-command-map)
+(setq projectile-keymap-prefix (kbd "C-c p"))
 
 (projectile-mode 1)
 
@@ -261,8 +260,7 @@
 
 (autoload 'rg-menu "rg" "rg" t)
 
-(global-set-key (kbd "C-c r") 'rg-menu)
-(global-set-key (kbd "C-c C-r") 'rg-menu)
+(global-set-key (kbd "C-c s") 'rg-menu)
 
 ;;; prog
 (setq-default display-line-numbers-width 4)
@@ -319,6 +317,7 @@
 ;;; python
 (setq python-indent-guess-indent-offset nil
       python-shell-interpreter "python3"
+      elpy-rpc-python-command "python3"
       org-babel-python-command "python3")
 
 (+setq-hook 'python-mode-hook
@@ -327,4 +326,16 @@
 
 (with-eval-after-load 'python
   (with-eval-after-load 'org
-    (require 'ob-python)))
+    (require 'ob-python))
+  (setq elpy-modules
+	'(elpy-module-sane-defaults
+	  elpy-module-company
+	  elpy-module-eldoc
+	  elpy-module-yasnippet
+	  elpy-module-highlight-indentation
+	  elpy-module-pyvenv))
+  (require 'elpy)
+  (define-key elpy-mode-map (kbd "C-c C-n") 'outline-next-heading)
+  (define-key elpy-mode-map (kbd "C-c C-p") 'outline-previous-heading)
+  (elpy-enable)
+  (add-hook 'elpy-mode-hook 'flycheck-mode))
