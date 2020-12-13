@@ -46,6 +46,7 @@
 
 ;;; ui
 (tool-bar-mode -1)
+(menu-bar-mode -1)
 (scroll-bar-mode -1)
 
 (setq inhibit-splash-screen t)
@@ -54,6 +55,9 @@
 
 (show-paren-mode 1)
 (electric-pair-mode 1)
+
+(global-set-key (kbd "<f2>") 'tmm-menubar)
+(global-set-key (kbd "C-<f2>") 'tmm-menubar)
 
 (windmove-default-keybindings)
 

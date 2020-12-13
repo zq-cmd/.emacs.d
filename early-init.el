@@ -14,6 +14,7 @@
 (add-hook 'minibuffer-exit-hook (lambda () (setq gc-cons-threshold +gc-low-cons-threshold)))
 
 (setq default-frame-alist '((tool-bar-lines . 0)
+			    (menu-bar-lines . 0)
 			    (fullscreen . maximized)))
 
 (advice-add 'x-apply-session-resources :override 'ignore)
