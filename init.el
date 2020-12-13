@@ -14,11 +14,14 @@
 (setq package-selected-packages '(god-mode
                                   which-key
 				  helpful
+				  zenburn-theme
+				  smart-mode-line
                                   ido-completing-read+
                                   smex
                                   projectile
 				  expand-region
 				  ace-mc
+				  zop-to-char
                                   magit
                                   rg
                                   wgrep
@@ -56,6 +59,10 @@
 
 (winner-mode 1)
 
+(load-theme 'zenburn t)
+
+(smart-mode-line-enable)
+
 ;;; cn
 (defvar +text-scale-list
   [(9.0  . 9.0)
@@ -70,14 +77,15 @@
 (defvar +text-scale-index 3)
 
 (defun +text-scale-set (&optional frame)
-  (let ((scale (aref +text-scale-list +text-scale-index)))
-    (set-face-attribute
-     'default frame
-     :font (font-spec :anme "Ubuntu Mono" :size (car scale)))
-    (set-fontset-font
-     (frame-parameter frame 'font)
-     'han
-     (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale)))))
+  (when (display-graphic-p)
+    (let ((scale (aref +text-scale-list +text-scale-index)))
+      (set-face-attribute
+       'default frame
+       :font (font-spec :anme "Ubuntu Mono" :size (car scale)))
+      (set-fontset-font
+       (frame-parameter frame 'font)
+       'han
+       (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale))))))
 
 (+text-scale-set)
 
@@ -220,6 +228,9 @@
 (savehist-mode 1)
 
 (recentf-mode 1)
+
+(global-set-key (kbd "M-z") 'zop-to-char)
+(global-set-key (kbd "M-Z") 'zop-up-to-char)
 
 (setq ido-use-virtual-buffers t)
 
