@@ -1,3 +1,4 @@
+;;; package
 (defmacro +menu-item (&rest body)
   `'(menu-item "" nil :filter (lambda (&optional _) ,@body)))
 
@@ -12,12 +13,18 @@
 
 (setq package-selected-packages '(god-mode
                                   which-key
+				  helpful
                                   ido-completing-read+
                                   smex
                                   projectile
+				  expand-region
+				  ace-mc
                                   magit
                                   rg
                                   wgrep
+				  fd-dired
+				  dired-filter
+				  dired-rsync
                                   company
                                   pyim
                                   posframe
@@ -32,6 +39,7 @@
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
 
+;;; ui
 (tool-bar-mode -1)
 (scroll-bar-mode -1)
 
@@ -42,18 +50,11 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(setq enable-recursive-minibuffers t
-      dabbrev-case-replace nil
-      dabbrev-case-distinction nil
-      kill-ring-max 10
-      history-length 10
-      savehist-autosave-interval nil
-      savehist-save-minibuffer-history nil
-      savehist-additional-variables
-      '(read-expression-history kill-ring))
+(windmove-default-keybindings)
 
-(savehist-mode 1)
+(winner-mode 1)
 
+;;; cn
 (defvar +text-scale-list
   [(9.0  . 9.0)
    (10.0 . 10.5)
@@ -150,30 +151,39 @@
       ("oo" "o"))))
   (pyim-basedict-enable))
 
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(windmove-default-keybindings)
-
-(winner-mode 1)
-
+;;; tool
 (setq vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil)
+
+(setq dired-filter-mark-prefix "?")
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map "r" 'dired-do-rename)
+  (define-key dired-mode-map "R" 'dired-rsync))
+
+(global-set-key (kbd "C-x f") 'find-file-at-point)
+(global-set-key (kbd "C-x C-d") 'fd-dired)
+(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+(add-hook 'dired-mode-hook 'dired-filter-mode)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
 
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 
+;;; help
 (require 'god-mode)
 (require 'god-mode-isearch)
 
-(setq god-exempt-predicates nil
-      god-exempt-major-modes nil)
+(setq god-mode-alist '((nil . "C-") ("g" . "M-") ("." . "C-M-")))
+
+(add-to-list 'god-exempt-major-modes 'rg-mode)
 
 (global-set-key (kbd "<escape>") 'god-mode-all)
-(define-key god-local-mode-map (kbd ".") 'repeat)
+(define-key god-local-mode-map (kbd "z") 'repeat)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 
@@ -187,6 +197,25 @@
 (which-key-mode 1)
 
 (which-key-enable-god-mode-support)
+
+(global-set-key [remap describe-key] 'helpful-key)
+(global-set-key [remap describe-symbol] 'helpful-symbol)
+(global-set-key [remap describe-variable] 'helpful-variable)
+(global-set-key [remap describe-function] 'helpful-callable)
+(define-key help-map (kbd ".") 'helpful-at-point)
+
+;;; ido
+(setq enable-recursive-minibuffers t
+      dabbrev-case-replace nil
+      dabbrev-case-distinction nil
+      kill-ring-max 10
+      history-length 10
+      savehist-autosave-interval nil
+      savehist-save-minibuffer-history nil
+      savehist-additional-variables
+      '(read-expression-history kill-ring))
+
+(savehist-mode 1)
 
 (recentf-mode 1)
 
@@ -206,6 +235,24 @@
 
 (projectile-mode 1)
 
+;;; edit
+(global-set-key (kbd "C-=") 'er/expand-region)
+
+(global-set-key (kbd "M-g g") 'ace-jump-line-mode)
+(global-set-key (kbd "M-g c") 'ace-jump-char-mode)
+(global-set-key (kbd "M-g w") 'ace-jump-word-mode)
+(global-set-key (kbd "M-g b") 'ace-jump-mode-pop-mark)
+
+(global-set-key (kbd "C-C C-C") 'mc/edit-lines)
+(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-c C-M-<") 'mc/mark-all-like-this-in-defun)
+(global-set-key (kbd "C-c C->") 'ace-mc-add-multiple-cursors)
+(global-set-key (kbd "C-c C-M->") 'ace-mc-add-single-cursor)
+
+;;; tool
 (setq magit-define-global-key-bindings nil)
 
 (global-set-key (kbd "C-x g") 'magit)
@@ -217,7 +264,16 @@
 (global-set-key (kbd "C-c r") 'rg-menu)
 (global-set-key (kbd "C-c C-r") 'rg-menu)
 
+;;; prog
 (setq-default display-line-numbers-width 4)
+
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+(setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
+
+(require 'company)
+(require 'outline)
+(require 'hideshow)
 
 (setq company-idle-delay 0.3
       company-dabbrev-downcase nil
@@ -229,16 +285,46 @@
       company-backends
       '(company-capf company-files company-dabbrev company-keywords))
 
-(dolist (mode '(display-line-numbers-mode
-                outline-minor-mode
+(dolist (mode '(outline-minor-mode
                 hs-minor-mode
                 company-mode))
-  (add-hook 'prog-mode-hook mode))
+  (add-hook 'prog-mode-hook mode)
+  (setcdr (assq mode minor-mode-alist) '("")))
 
-(define-key prog-mode-map (kbd "C-<tab>")
+(define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
+(define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
+(define-key prog-mode-map (kbd "<backtab>")
   (+menu-item
    (if (outline-on-heading-p)
        'outline-toggle-children
      'hs-toggle-hiding)))
 
 (+setq-hook 'emacs-lisp-mode-hook outline-regexp ";;; ")
+
+;;; org
+(setq org-modules '(org-tempo)
+      org-export-backends '(html)
+      org-html-postamble nil
+      org-html-validation-link nil
+      org-special-ctrl-a/e t
+      org-link-descriptive nil
+      org-footnote-auto-adjust t
+      org-link-frame-setup '((file . find-file))
+      org-src-window-setup 'current-window)
+
+(+setq-hook 'org-mode-hook pyim-english-input-switch-functions '(org-inside-LaTeX-fragment-p))
+
+(add-hook 'org-mode-hook 'org-cdlatex-mode)
+
+;;; python
+(setq python-indent-guess-indent-offset nil
+      python-shell-interpreter "python3"
+      org-babel-python-command "python3")
+
+(+setq-hook 'python-mode-hook
+	    outline-regexp "## "
+	    outline-heading-end-regexp "\n")
+
+(with-eval-after-load 'python
+  (with-eval-after-load 'org
+    (require 'ob-python)))

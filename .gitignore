@@ -3,6 +3,7 @@
 TAGS
 auto-save-list
 elpa
+eshell
 transient
 recentf
 bookmarks
@@ -16,3 +17,4 @@ projectile-bookmarks.eld
 pyim
 package-quickstart.el
 custom.el
+.mc-lists.el
