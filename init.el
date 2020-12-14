@@ -9,23 +9,23 @@
 
 (setq package-archives
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+	("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(zenburn-theme
 				  god-mode
-                                  which-key
-                                  ido-completing-read+
-                                  amx
-                                  projectile
+				  which-key
+				  ido-completing-read+
+				  amx
+				  projectile
 				  expand-region
 				  multiple-cursors
-                                  magit
-                                  rg
-                                  pyim
-                                  posframe
-                                  auctex
-                                  cdlatex
-                                  htmlize
+				  magit
+				  rg
+				  pyim
+				  posframe
+				  auctex
+				  cdlatex
+				  htmlize
 				  elpy
 				  flycheck))
 
@@ -49,7 +49,6 @@
 (electric-pair-mode 1)
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
-(global-set-key (kbd "C-<f2>") 'tmm-menubar)
 
 (windmove-default-keybindings)
 
@@ -104,6 +103,15 @@
       pyim-autoselector nil
       pyim-enable-shortcode nil
       pyim-fuzzy-pinyin-alist nil)
+
+(defun +pyim-prob-god-mode-p () god-local-mode)
+
+(setq-default pyim-english-input-switch-functions '(+pyim-prob-god-mode-p))
+
+(+setq-hook 'org-mode-hook
+	    pyim-english-input-switch-functions
+	    '(god-local-mode
+	      org-inside-LaTeX-fragment-p))
 
 (with-eval-after-load 'pyim
   (defun pyim-punctuation-full-width-p ())
@@ -165,8 +173,17 @@
 (define-key special-mode-map (kbd "p") 'previous-line)
 
 (global-set-key (kbd "C-x m") 'imenu)
+
 (global-set-key (kbd "C-x f") 'find-file-at-point)
-(global-set-key (kbd "C-x C-b") 'ibuffer)
+
+(global-set-key (kbd "C-x b") 'ibuffer)
+(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
+
+(global-set-key (kbd "C-x C-o") 'other-window)
+(global-set-key (kbd "C-x C-0") 'delete-window)
+(global-set-key (kbd "C-x C-1") 'delete-other-windows)
+(global-set-key (kbd "C-x C-2") 'split-window-below)
+(global-set-key (kbd "C-x C-3") 'split-window-right)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
@@ -185,6 +202,7 @@
 (global-set-key (kbd "<escape>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "z") 'repeat)
 (define-key god-local-mode-map (kbd "q") 'quit-window)
+(define-key god-local-mode-map [remap pyim-self-insert-command] 'god-mode-self-insert)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 
@@ -200,17 +218,8 @@
 (which-key-enable-god-mode-support)
 
 ;;; ido
-(setq enable-recursive-minibuffers t
-      dabbrev-case-replace nil
-      dabbrev-case-distinction nil
-      kill-ring-max 10
-      history-length 10
-      savehist-autosave-interval nil
-      savehist-save-minibuffer-history nil
-      savehist-additional-variables
-      '(read-expression-history kill-ring))
-
-(savehist-mode 1)
+(setq dabbrev-case-replace nil
+      dabbrev-case-distinction nil)
 
 (recentf-mode 1)
 
@@ -244,6 +253,9 @@
 (global-set-key (kbd "C-x M-g") 'magit-dispatch)
 (global-set-key (kbd "C-c M-g") 'magit-file-dispatch)
 
+(setq wgrep-auto-save-buffer t
+      rg-custom-type-aliases nil)
+
 (autoload 'rg-menu "rg" "rg" t)
 
 (global-set-key (kbd "C-c s") 'rg-menu)
@@ -265,23 +277,22 @@
       company-dabbrev-other-buffers nil
       company-frontends
       '(company-pseudo-tooltip-unless-just-one-frontend
-        company-preview-if-just-one-frontend)
+	company-preview-if-just-one-frontend)
       company-backends
       '(company-capf company-files company-dabbrev company-keywords))
 
 (dolist (mode '(outline-minor-mode
-                hs-minor-mode
-                company-mode))
+		hs-minor-mode
+		company-mode))
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
 (define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
-(define-key prog-mode-map (kbd "<backtab>")
-  (+menu-item
-   (if (outline-on-heading-p)
-       'outline-toggle-children
-     'hs-toggle-hiding)))
+(define-key prog-mode-map (kbd "C-c C-i") (+menu-item
+					   (if (outline-on-heading-p)
+					       'outline-toggle-children
+					     'hs-toggle-hiding)))
 
 (+setq-hook 'emacs-lisp-mode-hook outline-regexp ";;; ")
 
@@ -295,8 +306,6 @@
       org-footnote-auto-adjust t
       org-link-frame-setup '((file . find-file))
       org-src-window-setup 'current-window)
-
-(+setq-hook 'org-mode-hook pyim-english-input-switch-functions '(org-inside-LaTeX-fragment-p))
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
