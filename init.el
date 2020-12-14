@@ -11,35 +11,29 @@
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
-(setq package-selected-packages '(god-mode
+(setq package-selected-packages '(zenburn-theme
+				  god-mode
                                   which-key
 				  helpful
-				  zenburn-theme
-				  smart-mode-line
                                   ido-completing-read+
-                                  smex
+                                  amx
                                   projectile
 				  expand-region
-				  ace-mc
-				  zop-to-char
+				  multiple-cursors
                                   magit
                                   rg
                                   wgrep
-				  fd-dired
-				  dired-filter
-				  dired-rsync
-                                  company
-				  flycheck
                                   pyim
                                   posframe
                                   auctex
                                   cdlatex
                                   htmlize
-				  elpy))
+				  elpy
+				  flycheck))
 
 (require 'package)
 
-(unless (package-installed-p 'god-mode)
+(unless (package-installed-p 'zenburn-theme)
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
@@ -64,8 +58,6 @@
 (winner-mode 1)
 
 (load-theme 'zenburn t)
-
-(smart-mode-line-enable)
 
 ;;; cn
 (defvar +text-scale-list
@@ -171,17 +163,8 @@
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil)
 
-(setq dired-filter-mark-prefix "?")
-
-(with-eval-after-load 'dired
-  (define-key dired-mode-map "r" 'dired-do-rename)
-  (define-key dired-mode-map "R" 'dired-rsync))
-
 (global-set-key (kbd "C-x f") 'find-file-at-point)
-(global-set-key (kbd "C-x C-d") 'fd-dired)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(add-hook 'dired-mode-hook 'dired-filter-mode)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
@@ -193,8 +176,6 @@
 (require 'god-mode-isearch)
 
 (setq god-mode-alist '((nil . "C-") ("g" . "M-") ("." . "C-M-")))
-
-(add-to-list 'god-exempt-major-modes 'rg-mode)
 
 (global-set-key (kbd "<escape>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "z") 'repeat)
@@ -233,16 +214,17 @@
 
 (recentf-mode 1)
 
-(global-set-key (kbd "M-z") 'zop-to-char)
-(global-set-key (kbd "M-Z") 'zop-up-to-char)
-
 (setq ido-use-virtual-buffers t)
 
 (ido-mode 1)
 (ido-everywhere 1)
 (ido-ubiquitous-mode 1)
+(amx-mode 1)
 
-(global-set-key (kbd "M-x") 'smex)
+(defun amx-describe-function ()
+  (interactive)
+  (amx-do-with-selected-item 'helpful-callable))
+
 (global-set-key (kbd "C-x m") 'imenu)
 
 (setq projectile-keymap-prefix (kbd "C-c p"))
@@ -252,19 +234,12 @@
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
 
-(global-set-key (kbd "M-g g") 'ace-jump-line-mode)
-(global-set-key (kbd "M-g c") 'ace-jump-char-mode)
-(global-set-key (kbd "M-g w") 'ace-jump-word-mode)
-(global-set-key (kbd "M-g b") 'ace-jump-mode-pop-mark)
-
 (global-set-key (kbd "C-C C-C") 'mc/edit-lines)
 (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 (global-set-key (kbd "C-c C-M-<") 'mc/mark-all-like-this-in-defun)
-(global-set-key (kbd "C-c C->") 'ace-mc-add-multiple-cursors)
-(global-set-key (kbd "C-c C-M->") 'ace-mc-add-single-cursor)
 
 ;;; tool
 (setq magit-define-global-key-bindings nil)
