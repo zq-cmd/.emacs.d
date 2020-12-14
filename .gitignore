@@ -15,6 +15,7 @@ url
 ido.last
 amx-items
 projects
+projectile.cache
 projectile-bookmarks.eld
 pyim
 package-quickstart.el

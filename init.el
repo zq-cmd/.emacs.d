@@ -14,7 +14,6 @@
 (setq package-selected-packages '(zenburn-theme
 				  god-mode
                                   which-key
-				  helpful
                                   ido-completing-read+
                                   amx
                                   projectile
@@ -22,7 +21,6 @@
 				  multiple-cursors
                                   magit
                                   rg
-                                  wgrep
                                   pyim
                                   posframe
                                   auctex
@@ -163,6 +161,10 @@
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil)
 
+(define-key special-mode-map (kbd "n") 'next-line)
+(define-key special-mode-map (kbd "p") 'previous-line)
+
+(global-set-key (kbd "C-x m") 'imenu)
 (global-set-key (kbd "C-x f") 'find-file-at-point)
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 
@@ -172,13 +174,17 @@
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 
 ;;; help
+(setq god-exempt-predicates nil
+      god-exempt-major-modes nil
+      god-mode-enable-function-key-translation nil
+      god-mode-alist '((nil . "C-") ("g" . "M-") ("." . "C-M-")))
+
 (require 'god-mode)
 (require 'god-mode-isearch)
 
-(setq god-mode-alist '((nil . "C-") ("g" . "M-") ("." . "C-M-")))
-
 (global-set-key (kbd "<escape>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "z") 'repeat)
+(define-key god-local-mode-map (kbd "q") 'quit-window)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 
@@ -192,12 +198,6 @@
 (which-key-mode 1)
 
 (which-key-enable-god-mode-support)
-
-(global-set-key [remap describe-key] 'helpful-key)
-(global-set-key [remap describe-symbol] 'helpful-symbol)
-(global-set-key [remap describe-variable] 'helpful-variable)
-(global-set-key [remap describe-function] 'helpful-callable)
-(define-key help-map (kbd ".") 'helpful-at-point)
 
 ;;; ido
 (setq enable-recursive-minibuffers t
@@ -221,11 +221,7 @@
 (ido-ubiquitous-mode 1)
 (amx-mode 1)
 
-(defun amx-describe-function ()
-  (interactive)
-  (amx-do-with-selected-item 'helpful-callable))
-
-(global-set-key (kbd "C-x m") 'imenu)
+(define-key ido-common-completion-map (kbd "S-SPC") 'ido-restrict-to-matches)
 
 (setq projectile-keymap-prefix (kbd "C-c p"))
 
