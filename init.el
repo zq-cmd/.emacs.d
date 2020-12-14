@@ -172,9 +172,12 @@
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
 
-(global-set-key (kbd "C-x m") 'imenu)
+(global-set-key (kbd "C-x C-w") 'eshell)
 
 (global-set-key (kbd "C-x f") 'find-file-at-point)
+
+(global-set-key (kbd "C-x d") 'find-lisp-find-dired)
+(global-set-key (kbd "C-x C-d") 'dired)
 
 (global-set-key (kbd "C-x b") 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
@@ -189,6 +192,23 @@
       ediff-split-window-function 'split-window-horizontally)
 
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+
+(defun +browse-kill-ring ()
+  (interactive)
+  (switch-to-buffer-other-window "*browse kill ring*")
+  (with-current-buffer "*browse kill ring*"
+    (let ((cur kill-ring)
+	  (inhibit-read-only t))
+      (erase-buffer)
+      (save-excursion
+	(while cur
+	  (insert (car cur))
+	  (insert "\n")
+	  (setq cur (cdr cur)))))
+    (setq buffer-read-only t)
+    (set-buffer-modified-p nil)))
+
+(global-set-key (kbd "M-y") '+browse-kill-ring)
 
 ;;; help
 (setq god-exempt-predicates nil
@@ -287,6 +307,7 @@
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
+(define-key prog-mode-map (kbd "C-c C-j") 'imenu)
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
 (define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
 (define-key prog-mode-map (kbd "C-c C-i") (+menu-item
