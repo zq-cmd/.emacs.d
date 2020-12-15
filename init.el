@@ -21,6 +21,7 @@
 				  multiple-cursors
 				  magit
 				  rg
+				  fd-find
 				  pyim
 				  posframe
 				  auctex
@@ -176,7 +177,7 @@
 
 (global-set-key (kbd "C-x f") 'find-file-at-point)
 
-(global-set-key (kbd "C-x d") 'find-lisp-find-dired)
+(global-set-key (kbd "C-x d") 'fd-dired)
 (global-set-key (kbd "C-x C-d") 'dired)
 
 (global-set-key (kbd "C-x b") 'ibuffer)
@@ -187,6 +188,19 @@
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
+
+(setq magit-define-global-key-bindings nil)
+
+(global-set-key (kbd "C-x g") 'magit)
+(global-set-key (kbd "C-x M-g") 'magit-dispatch)
+(global-set-key (kbd "C-c M-g") 'magit-file-dispatch)
+
+(setq wgrep-auto-save-buffer t
+      rg-custom-type-aliases nil)
+
+(autoload 'rg-menu "rg" "rg" t)
+
+(global-set-key (kbd "C-c s") 'rg-menu)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
@@ -265,20 +279,6 @@
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
 (global-set-key (kbd "C-c C-M-<") 'mc/mark-all-like-this-in-defun)
-
-;;; tool
-(setq magit-define-global-key-bindings nil)
-
-(global-set-key (kbd "C-x g") 'magit)
-(global-set-key (kbd "C-x M-g") 'magit-dispatch)
-(global-set-key (kbd "C-c M-g") 'magit-file-dispatch)
-
-(setq wgrep-auto-save-buffer t
-      rg-custom-type-aliases nil)
-
-(autoload 'rg-menu "rg" "rg" t)
-
-(global-set-key (kbd "C-c s") 'rg-menu)
 
 ;;; prog
 (setq-default display-line-numbers-width 4)
