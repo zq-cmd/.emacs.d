@@ -99,23 +99,42 @@
 (global-set-key (kbd "C-_") '+text-scale-decrease)
 
 (setq default-input-method "pyim"
+      posframe-mouse-banish nil
       pyim-page-tooltip 'posframe
       pyim-default-scheme 'zirjma
       pyim-autoselector nil
       pyim-enable-shortcode nil
       pyim-fuzzy-pinyin-alist nil)
 
-(defun +pyim-prob-god-mode-p () god-local-mode)
+(defun +pyim-probe-god-mode-p () god-local-mode)
 
-(setq-default pyim-english-input-switch-functions '(+pyim-prob-god-mode-p))
+(setq-default pyim-english-input-switch-functions '(+pyim-probe-god-mode-p))
 
 (+setq-hook 'org-mode-hook
 	    pyim-english-input-switch-functions
-	    '(god-local-mode
+	    '(+pyim-probe-god-mode-p
 	      org-inside-LaTeX-fragment-p))
+
+(global-set-key (kbd "M-f")
+		(+menu-item
+		 (if (string-match-p "\\cc" (char-to-string (following-char)))
+		     'pyim-forward-word
+		   'forward-word)))
+
+(global-set-key (kbd "M-b")
+		(+menu-item
+		 (if (string-match-p "\\cc" (char-to-string (following-char)))
+		     'pyim-backward-word
+		   'backward-word)))
+
+(autoload 'pyim-forward-word "pyim" "pyim" t)
+(autoload 'pyim-backward-word "pyim" "pyim" t)
 
 (with-eval-after-load 'pyim
   (defun pyim-punctuation-full-width-p ())
+  (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
+  (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
+
   (pyim-scheme-add
    '(zirjma
      :document "zirjma"
@@ -209,18 +228,17 @@
 
 (defun +browse-kill-ring ()
   (interactive)
-  (switch-to-buffer-other-window "*browse kill ring*")
-  (with-current-buffer "*browse kill ring*"
-    (let ((cur kill-ring)
-	  (inhibit-read-only t))
-      (erase-buffer)
-      (save-excursion
-	(while cur
-	  (insert (car cur))
-	  (insert "\n")
-	  (setq cur (cdr cur)))))
-    (setq buffer-read-only t)
-    (set-buffer-modified-p nil)))
+  (let ((buffer (or (get-buffer "*browse kill ring*")
+		    (generate-new-buffer "*browse kill ring*"))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(dolist (text kill-ring)
+	  (insert text "\n"))
+	(goto-char (point-min))
+	(setq buffer-read-only t)
+	(set-buffer-modified-p nil)))
+    (switch-to-buffer-other-window buffer)))
 
 (global-set-key (kbd "M-y") '+browse-kill-ring)
 
@@ -228,7 +246,7 @@
 (setq god-exempt-predicates nil
       god-exempt-major-modes nil
       god-mode-enable-function-key-translation nil
-      god-mode-alist '((nil . "C-") ("g" . "M-") ("." . "C-M-")))
+      god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-") ("." . "C-M-")))
 
 (require 'god-mode)
 (require 'god-mode-isearch)
@@ -236,9 +254,16 @@
 (global-set-key (kbd "<escape>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "z") 'repeat)
 (define-key god-local-mode-map (kbd "q") 'quit-window)
-(define-key god-local-mode-map [remap pyim-self-insert-command] 'god-mode-self-insert)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
+
+(setq-default cursor-type 'hbar)
+
+(defun +god-mode-update-cursor ()
+  (setq cursor-type (if god-local-mode 'box 'hbar)))
+
+(dolist (hook '(god-mode-enabled-hook god-mode-disabled-hook))
+  (add-hook hook '+god-mode-update-cursor))
 
 (require 'which-key)
 
