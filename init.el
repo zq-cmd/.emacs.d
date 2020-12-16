@@ -61,6 +61,7 @@
 
 ;;; tool
 (setq vc-handled-backends '(Git)
+      auto-revert-check-vc-info t
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil)
@@ -127,7 +128,7 @@
 (require 'god-mode)
 (require 'god-mode-isearch)
 
-(global-set-key (kbd "<escape>") 'god-mode)
+(global-set-key (kbd "<escape>") 'god-mode-all)
 (define-key god-local-mode-map (kbd "z") 'repeat)
 (define-key god-local-mode-map (kbd "q") 'quit-window)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
@@ -141,7 +142,7 @@
 (dolist (hook '(god-mode-enabled-hook god-mode-disabled-hook))
   (add-hook hook '+god-mode-update-cursor))
 
-(god-mode)
+(god-mode-all)
 
 (require 'which-key)
 
@@ -179,12 +180,12 @@
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
 
-(global-set-key (kbd "C-C C-C") 'mc/edit-lines)
-(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-c C-M-<") 'mc/mark-all-like-this-in-defun)
+(global-set-key (kbd "C-C C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-C C->") 'mc/mark-all-like-this-in-defun)
+(global-set-key (kbd "C-C C-C") 'mc/edit-lines)
+(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
 ;;; prog
 (setq dabbrev-case-replace nil
