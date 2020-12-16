@@ -2,6 +2,9 @@
 (defmacro +menu-item (&rest body)
   `'(menu-item "" nil :filter (lambda (&optional _) ,@body)))
 
+(defmacro +menu-if (&rest body)
+  `(+menu-item (if ,@body)))
+
 (defmacro +setq-hook (hook &rest body)
   `(add-hook ,hook (lambda () (setq-local ,@body))))
 
@@ -81,8 +84,7 @@
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
 
-(setq magit-define-global-key-bindings nil
-      magit-completing-read-function 'magit-ido-completing-read)
+(setq magit-define-global-key-bindings nil)
 
 (global-set-key (kbd "C-x g") 'magit)
 (global-set-key (kbd "C-x M-g") 'magit-dispatch)
@@ -163,11 +165,14 @@
 
 (fido-mode 1)
 
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
+(setq completion-styles '(basic))
 
-(setq projectile-completion-system 'ido
-      projectile-keymap-prefix (kbd "C-c p"))
+(+setq-hook 'icomplete-minibuffer-setup-hook
+	    completion-styles '(substring))
+
+(global-set-key (kbd "M-x") 'smex)
+
+(setq projectile-keymap-prefix (kbd "C-c p"))
 
 (projectile-mode 1)
 
@@ -183,7 +188,8 @@
 
 ;;; prog
 (setq dabbrev-case-replace nil
-      dabbrev-case-distinction nil)
+      dabbrev-case-distinction nil
+      dabbrev-case-fold-search nil)
 
 (setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
 
@@ -214,13 +220,12 @@
 (define-key prog-mode-map (kbd "C-c C-j") 'imenu)
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
 (define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
-(define-key prog-mode-map (kbd "C-c C-i") (+menu-item (if (outline-on-heading-p)
-							  'outline-toggle-children
-							'hs-toggle-hiding)))
-(define-key prog-mode-map (kbd "M-<up>") (+menu-item (if (outline-on-heading-p)
-							 'outline-move-subtree-up)))
-(define-key prog-mode-map (kbd "M-<down>") (+menu-item (if (outline-on-heading-p)
-							   'outline-move-subtree-down)))
+(define-key prog-mode-map (kbd "C-c C-i")
+  (+menu-if (outline-on-heading-p) 'outline-toggle-children 'hs-toggle-hiding))
+(define-key prog-mode-map (kbd "M-<up>")
+  (+menu-if (outline-on-heading-p) 'outline-move-subtree-up))
+(define-key prog-mode-map (kbd "M-<down>")
+  (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
 
 (+setq-hook 'emacs-lisp-mode-hook outline-regexp "^;;; ")
 
