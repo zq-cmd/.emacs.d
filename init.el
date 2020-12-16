@@ -18,19 +18,16 @@
 				  god-mode
 				  which-key
 				  smex
-				  projectile
+				  wgrep
 				  expand-region
 				  multiple-cursors
 				  magit
-				  rg
-				  fd-dired
 				  pyim
 				  posframe
 				  auctex
 				  cdlatex
 				  htmlize
-				  elpy
-				  flycheck))
+				  elpy))
 
 (require 'package)
 
@@ -73,7 +70,7 @@
 
 (global-set-key (kbd "C-x f") 'find-file-at-point)
 
-(global-set-key (kbd "C-x d") 'fd-dired)
+(global-set-key (kbd "C-x d") 'find-dired)
 (global-set-key (kbd "C-x C-d") 'dired)
 
 (global-set-key (kbd "C-x b") 'ibuffer)
@@ -91,12 +88,7 @@
 (global-set-key (kbd "C-x M-g") 'magit-dispatch)
 (global-set-key (kbd "C-c M-g") 'magit-file-dispatch)
 
-(setq wgrep-auto-save-buffer t
-      rg-custom-type-aliases nil)
-
-(autoload 'rg-menu "rg" "rg" t)
-
-(global-set-key (kbd "C-c s") 'rg-menu)
+(setq wgrep-auto-save-buffer t)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
@@ -117,7 +109,7 @@
 	(set-buffer-modified-p nil)))
     (switch-to-buffer-other-window buffer)))
 
-(global-set-key (kbd "M-y") '+browse-kill-ring)
+(global-set-key (kbd "C-x C-y") '+browse-kill-ring)
 
 ;;; help
 (setq god-exempt-predicates nil
@@ -172,10 +164,6 @@
 	    completion-styles '(substring))
 
 (global-set-key (kbd "M-x") 'smex)
-
-(setq projectile-keymap-prefix (kbd "C-c p"))
-
-(projectile-mode 1)
 
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
@@ -248,7 +236,15 @@
       python-shell-interpreter "python3"
       org-babel-python-command "python3"
       elpy-rpc-python-command "python3"
-      elpy-shell-display-buffer-after-send t)
+      elpy-shell-display-buffer-after-send t
+      elpy-modules
+      '(elpy-module-sane-defaults
+	elpy-module-eldoc
+	elpy-module-flymake
+	elpy-module-company
+	elpy-module-yasnippet
+	elpy-module-highlight-indentation
+	elpy-module-pyvenv))
 
 (+setq-hook 'python-mode-hook
 	    outline-regexp "^# "
@@ -257,18 +253,13 @@
 (with-eval-after-load 'python
   (with-eval-after-load 'org
     (require 'ob-python))
-  (setq elpy-modules
-	'(elpy-module-sane-defaults
-	  elpy-module-eldoc
-	  elpy-module-company
-	  elpy-module-yasnippet
-	  elpy-module-highlight-indentation
-	  elpy-module-pyvenv))
   (require 'elpy)
+  (define-key elpy-mode-map (kbd "C-c n") 'elpy-flymake-next-error)
+  (define-key elpy-mode-map (kbd "C-c p") 'elpy-flymake-previous-error)
   (define-key elpy-mode-map (kbd "C-c C-n") 'outline-next-heading)
   (define-key elpy-mode-map (kbd "C-c C-p") 'outline-previous-heading)
-  (elpy-enable)
-  (add-hook 'elpy-mode-hook 'flycheck-mode))
+  (define-key elpy-mode-map (kbd "C-c C-i") 'elpy-folding-toggle-at-point)
+  (elpy-enable))
 
 ;;; cn
 (defvar +text-scale-list
