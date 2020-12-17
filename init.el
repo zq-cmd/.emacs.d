@@ -26,7 +26,10 @@
 				  auctex
 				  cdlatex
 				  htmlize
-				  elpy))
+				  company
+				  yasnippet
+				  markdown-mode
+				  eglot))
 
 (require 'package)
 
@@ -227,32 +230,20 @@
 ;;; python
 (setq python-indent-guess-indent-offset nil
       python-shell-interpreter "python3"
-      org-babel-python-command "python3"
-      elpy-rpc-python-command "python3"
-      elpy-shell-display-buffer-after-send t
-      elpy-modules
-      '(elpy-module-sane-defaults
-	elpy-module-eldoc
-	elpy-module-flymake
-	elpy-module-company
-	elpy-module-yasnippet
-	elpy-module-highlight-indentation
-	elpy-module-pyvenv))
+      org-babel-python-command "python3")
 
 (+setq-hook 'python-mode-hook
 	    outline-regexp "^# "
 	    outline-heading-end-regexp "\n")
 
 (with-eval-after-load 'python
+  (define-key python-mode-map (kbd "C-c p") 'run-python)
+  (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
   (with-eval-after-load 'org
-    (require 'ob-python))
-  (require 'elpy)
-  (define-key elpy-mode-map (kbd "C-c n") 'elpy-flymake-next-error)
-  (define-key elpy-mode-map (kbd "C-c p") 'elpy-flymake-previous-error)
-  (define-key elpy-mode-map (kbd "C-c C-n") 'outline-next-heading)
-  (define-key elpy-mode-map (kbd "C-c C-p") 'outline-previous-heading)
-  (define-key elpy-mode-map (kbd "C-c C-i") 'elpy-folding-toggle-at-point)
-  (elpy-enable))
+    (require 'ob-python)))
+
+;;; eglot
+(add-hook 'eglot--managed-mode-hook 'yas-minor-mode)
 
 ;;; cn
 (defvar +text-scale-list
