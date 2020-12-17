@@ -21,7 +21,6 @@
 				  wgrep
 				  expand-region
 				  multiple-cursors
-				  magit
 				  pyim
 				  posframe
 				  auctex
@@ -57,8 +56,8 @@
 (load-theme 'zenburn t)
 
 ;;; tool
-(setq vc-handled-backends '(Git)
-      auto-revert-check-vc-info t
+(setq confirm-kill-emacs 'y-or-n-p
+      vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil)
@@ -81,12 +80,6 @@
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
-
-(setq magit-define-global-key-bindings nil)
-
-(global-set-key (kbd "C-x g") 'magit)
-(global-set-key (kbd "C-x M-g") 'magit-dispatch)
-(global-set-key (kbd "C-c M-g") 'magit-file-dispatch)
 
 (setq wgrep-auto-save-buffer t)
 
