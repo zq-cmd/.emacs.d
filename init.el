@@ -21,15 +21,17 @@
 				  wgrep
 				  expand-region
 				  multiple-cursors
+				  auto-yasnippet
+				  yasnippet-snippets
 				  pyim
 				  posframe
 				  auctex
 				  cdlatex
 				  htmlize
 				  company
-				  yasnippet
 				  markdown-mode
-				  eglot))
+				  eglot
+				  pdf-tools))
 
 (require 'package)
 
@@ -107,6 +109,21 @@
 
 (global-set-key (kbd "C-x C-y") '+browse-kill-ring)
 
+(yas-global-mode 1)
+
+(setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
+
+(defvar +aya-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "c") 'aya-create)
+    (define-key map (kbd "e") 'aya-expand)
+    (define-key map (kbd "s") 'aya-persist-snippet)
+    (define-key map (kbd "y") 'aya-yank-snippet)
+    map))
+
+(global-set-key (kbd "C-x C-a") +aya-map)
+(global-set-key (kbd "C-o") 'aya-open-line)
+
 ;;; help
 (setq god-exempt-predicates nil
       god-exempt-major-modes nil
@@ -160,6 +177,7 @@
 	    completion-styles '(substring))
 
 (global-set-key (kbd "M-x") 'smex)
+(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
@@ -214,19 +232,6 @@
 
 (+setq-hook 'emacs-lisp-mode-hook outline-regexp "^;;; ")
 
-;;; org
-(setq org-modules nil
-      org-export-backends '(html)
-      org-html-postamble nil
-      org-html-validation-link nil
-      org-special-ctrl-a/e t
-      org-link-descriptive nil
-      org-footnote-auto-adjust t
-      org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window)
-
-(add-hook 'org-mode-hook 'org-cdlatex-mode)
-
 ;;; python
 (setq python-indent-guess-indent-offset nil
       python-shell-interpreter "python3"
@@ -242,8 +247,29 @@
   (with-eval-after-load 'org
     (require 'ob-python)))
 
-;;; eglot
-(add-hook 'eglot--managed-mode-hook 'yas-minor-mode)
+;;; org
+(setq org-modules nil
+      org-export-backends '(html)
+      org-html-postamble nil
+      org-html-validation-link nil
+      org-special-ctrl-a/e t
+      org-link-descriptive nil
+      org-footnote-auto-adjust t
+      org-link-frame-setup '((file . find-file))
+      org-src-window-setup 'current-window)
+
+(add-hook 'org-mode-hook 'org-cdlatex-mode)
+
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+
+;;; pdf
+(with-eval-after-load 'pdf-tools
+  (pdf-tools-install))
+
+(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
+
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 
 ;;; cn
 (defvar +text-scale-list
