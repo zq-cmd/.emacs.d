@@ -109,6 +109,8 @@
 
 (global-set-key (kbd "C-x C-y") '+browse-kill-ring)
 
+(setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
+
 (yas-global-mode 1)
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
@@ -123,8 +125,28 @@
 
 (global-set-key (kbd "C-x C-a") +aya-map)
 (global-set-key (kbd "C-o") 'aya-open-line)
+(global-set-key (kbd "C-O") 'aya-expand)
 
-;;; help
+(setq completion-styles '(basic)
+      dabbrev-case-replace nil
+      dabbrev-case-distinction nil
+      dabbrev-case-fold-search nil)
+
+(setq company-idle-delay 0.3
+      company-dabbrev-downcase nil
+      company-dabbrev-ignore-case nil
+      company-dabbrev-other-buffers nil
+      company-frontends
+      '(company-pseudo-tooltip-unless-just-one-frontend
+	company-preview-if-just-one-frontend)
+      company-backends
+      '(company-files (company-dabbrev-code company-keywords) company-dabbrev))
+
+(global-company-mode 1)
+
+(setcdr (assq 'company-mode minor-mode-alist) '(""))
+
+;;; god
 (setq god-exempt-predicates nil
       god-exempt-major-modes nil
       god-mode-enable-function-key-translation nil
@@ -171,8 +193,6 @@
 
 (fido-mode 1)
 
-(setq completion-styles '(basic))
-
 (+setq-hook 'icomplete-minibuffer-setup-hook
 	    completion-styles '(substring))
 
@@ -190,33 +210,15 @@
 (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
 ;;; prog
-(setq dabbrev-case-replace nil
-      dabbrev-case-distinction nil
-      dabbrev-case-fold-search nil)
-
-(setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
-
 (setq-default display-line-numbers-width 4)
 
 (add-hook 'prog-mode-hook 'display-line-numbers-mode)
 
-(require 'company)
 (require 'outline)
 (require 'hideshow)
 
-(setq company-idle-delay 0.3
-      company-dabbrev-downcase nil
-      company-dabbrev-ignore-case nil
-      company-dabbrev-other-buffers nil
-      company-frontends
-      '(company-pseudo-tooltip-unless-just-one-frontend
-	company-preview-if-just-one-frontend)
-      company-backends
-      '(company-capf company-files company-dabbrev company-keywords))
-
 (dolist (mode '(outline-minor-mode
-		hs-minor-mode
-		company-mode))
+		hs-minor-mode))
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
@@ -230,7 +232,10 @@
 (define-key prog-mode-map (kbd "M-<down>")
   (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
 
-(+setq-hook 'emacs-lisp-mode-hook outline-regexp "^;;; ")
+;;; elisp
+(+setq-hook 'emacs-lisp-mode-hook
+	    outline-regexp "^;;; "
+	    company-backends '(company-capf company-files company-dabbrev-code company-dabbrev))
 
 ;;; python
 (setq python-indent-guess-indent-offset nil
