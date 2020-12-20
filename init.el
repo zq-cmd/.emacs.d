@@ -60,6 +60,12 @@
 
 (winner-mode 1)
 
+(global-set-key (kbd "C-x C-o") 'other-window)
+(global-set-key (kbd "C-x C-0") 'delete-window)
+(global-set-key (kbd "C-x C-1") 'delete-other-windows)
+(global-set-key (kbd "C-x C-2") 'split-window-below)
+(global-set-key (kbd "C-x C-3") 'split-window-right)
+
 (load-theme 'zenburn t)
 
 ;;; tool
@@ -67,12 +73,8 @@
       vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
-      tramp-completion-use-auth-sources nil)
-
-(define-key special-mode-map (kbd "n") 'next-line)
-(define-key special-mode-map (kbd "p") 'previous-line)
-
-(setq eshell-modules-list
+      tramp-completion-use-auth-sources nil
+      eshell-modules-list
       '(eshell-alias
 	eshell-basic
 	eshell-cmpl
@@ -89,6 +91,9 @@
 	eshell-unix)
       eshell-cd-on-directory nil)
 
+(define-key special-mode-map (kbd "n") 'next-line)
+(define-key special-mode-map (kbd "p") 'previous-line)
+
 (global-set-key (kbd "C-x C-w") 'eshell)
 
 (global-set-key (kbd "C-x f") 'find-file-at-point)
@@ -98,12 +103,6 @@
 
 (global-set-key (kbd "C-x b") 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
-
-(global-set-key (kbd "C-x C-o") 'other-window)
-(global-set-key (kbd "C-x C-0") 'delete-window)
-(global-set-key (kbd "C-x C-1") 'delete-other-windows)
-(global-set-key (kbd "C-x C-2") 'split-window-below)
-(global-set-key (kbd "C-x C-3") 'split-window-right)
 
 (setq wgrep-auto-save-buffer t)
 
@@ -254,6 +253,14 @@
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
+(global-set-key (kbd "C-c %") 'org-mark-ring-push)
+(global-set-key (kbd "C-c &") 'org-mark-ring-goto)
+(global-set-key (kbd "C-c l") 'org-store-link)
+(global-set-key (kbd "C-c M-l") 'org-insert-last-stored-link)
+(global-set-key (kbd "C-c C-l") 'org-insert-link)
+(global-set-key (kbd "C-c @ >") 'org-next-link)
+(global-set-key (kbd "C-c @ <") 'org-previous-link)
+
 ;;; prog
 (setq-default display-line-numbers-width 4)
 
@@ -298,7 +305,10 @@
 
 (with-eval-after-load 'python
   (define-key python-mode-map (kbd "C-c p") 'run-python)
+  (define-key python-mode-map (kbd "C-c f") 'python-eldoc-at-point)
+  (define-key python-mode-map (kbd "C-c C-L") 'python-shell-send-file)
   (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
+  (define-key python-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
   (with-eval-after-load 'org
     (require 'ob-python)))
 
