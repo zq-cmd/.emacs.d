@@ -40,6 +40,8 @@
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
 
+(add-to-list 'load-path "~/.emacs.d/lisp/")
+
 ;;; ui
 (tool-bar-mode -1)
 (menu-bar-mode -1)
@@ -69,6 +71,23 @@
 
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
+
+(setq eshell-modules-list
+      '(eshell-alias
+	eshell-basic
+	eshell-cmpl
+	eshell-dirs
+	eshell-glob
+	eshell-hist
+	eshell-ls
+	eshell-pred
+	eshell-prompt
+	eshell-rebind
+	eshell-script
+	eshell-term
+	eshell-tramp
+	eshell-unix)
+      eshell-cd-on-directory nil)
 
 (global-set-key (kbd "C-x C-w") 'eshell)
 
@@ -111,12 +130,22 @@
 
 (setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
 
+(setq yas-alias-to-yas/prefix-p nil
+      yas-prompt-functions '(yas-maybe-ido-prompt))
+
+(setq yas-minor-mode-map (make-sparse-keymap))
+
 (yas-global-mode 1)
+
+(define-key yas-minor-mode-map (kbd "<tab>") yas-maybe-expand)
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 
 (defvar +aya-map
   (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "i") 'yas-insert-snippet)
+    (define-key map (kbd "n") 'yas-new-snippet)
+    (define-key map (kbd "v") 'yas-visit-snippet-file)
     (define-key map (kbd "c") 'aya-create)
     (define-key map (kbd "e") 'aya-expand)
     (define-key map (kbd "s") 'aya-persist-snippet)
@@ -209,6 +238,22 @@
 (global-set-key (kbd "C-C C-C") 'mc/edit-lines)
 (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
+;;; org
+(setq org-modules '(org-mouse ol-eww ol-eshell ol-info)
+      org-export-backends '(html)
+      org-html-postamble nil
+      org-html-validation-link nil
+      org-special-ctrl-a/e t
+      org-footnote-auto-adjust t
+      org-link-frame-setup '((file . find-file))
+      org-src-window-setup 'current-window)
+
+(require 'org)
+
+(define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
+
+(add-hook 'org-mode-hook 'org-cdlatex-mode)
+
 ;;; prog
 (setq-default display-line-numbers-width 4)
 
@@ -216,15 +261,20 @@
 
 (require 'outline)
 (require 'hideshow)
+(require 'org-link-minor-mode)
 
-(dolist (mode '(outline-minor-mode
-		hs-minor-mode))
+(dolist (mode '(hs-minor-mode
+		outline-minor-mode
+		org-link-minor-mode))
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
 (define-key prog-mode-map (kbd "C-c C-j") 'imenu)
+(define-key prog-mode-map (kbd "C-c C-u") 'outline-up-heading)
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
 (define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
+(define-key prog-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
+(define-key prog-mode-map (kbd "C-c C-b") 'outline-backward-same-level)
 (define-key prog-mode-map (kbd "C-c C-i")
   (+menu-if (outline-on-heading-p) 'outline-toggle-children 'hs-toggle-hiding))
 (define-key prog-mode-map (kbd "M-<up>")
@@ -234,7 +284,7 @@
 
 ;;; elisp
 (+setq-hook 'emacs-lisp-mode-hook
-	    outline-regexp "^;;; "
+	    outline-regexp ";;[;\^L]+ "
 	    company-backends '(company-capf company-files company-dabbrev-code company-dabbrev))
 
 ;;; python
@@ -243,7 +293,7 @@
       org-babel-python-command "python3")
 
 (+setq-hook 'python-mode-hook
-	    outline-regexp "^# "
+	    outline-regexp "#[#\^L]+ "
 	    outline-heading-end-regexp "\n")
 
 (with-eval-after-load 'python
@@ -251,22 +301,6 @@
   (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
   (with-eval-after-load 'org
     (require 'ob-python)))
-
-;;; org
-(setq org-modules nil
-      org-export-backends '(html)
-      org-html-postamble nil
-      org-html-validation-link nil
-      org-special-ctrl-a/e t
-      org-link-descriptive nil
-      org-footnote-auto-adjust t
-      org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window)
-
-(add-hook 'org-mode-hook 'org-cdlatex-mode)
-
-(with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
 
 ;;; pdf
 (with-eval-after-load 'pdf-tools
