@@ -40,8 +40,6 @@
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
 
-(add-to-list 'load-path "~/.emacs.d/lisp/")
-
 ;;; ui
 (tool-bar-mode -1)
 (menu-bar-mode -1)
@@ -243,25 +241,23 @@
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
+      org-descriptive-links nil
       org-footnote-auto-adjust t
       org-link-frame-setup '((file . find-file))
       org-src-window-setup 'current-window)
 
-(require 'org)
-
-(define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
-(global-set-key (kbd "C-c %") 'org-mark-ring-push)
-(global-set-key (kbd "C-c &") 'org-mark-ring-goto)
-(global-set-key (kbd "C-c l") 'org-store-link)
-(global-set-key (kbd "C-c M-l") 'org-insert-last-stored-link)
-(global-set-key (kbd "C-c C-l") 'org-insert-link)
-(global-set-key (kbd "C-c .") 'org-time-stamp)
-(global-set-key (kbd "C-c !") 'org-time-stamp-inactive)
-(global-set-key (kbd "C-c @ >") 'org-next-link)
-(global-set-key (kbd "C-c @ <") 'org-previous-link)
+(global-set-key (kbd "C-c l o") 'org-open-at-point)
+(global-set-key (kbd "C-c l s") 'org-store-link)
+(global-set-key (kbd "C-c l l") 'org-insert-last-stored-link)
+(global-set-key (kbd "C-c l i") 'org-insert-link)
+(global-set-key (kbd "C-c l n") 'org-next-link)
+(global-set-key (kbd "C-c l p") 'org-previous-link)
+(global-set-key (kbd "C-c l g") 'org-mark-ring-goto)
 
 ;;; prog
 (setq-default display-line-numbers-width 4)
@@ -270,11 +266,9 @@
 
 (require 'outline)
 (require 'hideshow)
-(require 'org-link-minor-mode)
 
 (dolist (mode '(hs-minor-mode
-		outline-minor-mode
-		org-link-minor-mode))
+		outline-minor-mode))
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
@@ -308,10 +302,8 @@
 (with-eval-after-load 'python
   (define-key python-mode-map (kbd "C-c p") 'run-python)
   (define-key python-mode-map (kbd "C-c f") 'python-eldoc-at-point)
-  (define-key python-mode-map (kbd "C-c C-L") 'python-shell-send-file)
   (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
   (define-key python-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
-  (define-key python-mode-map (kbd "C-c C-l") 'org-insert-link)
   (with-eval-after-load 'org
     (require 'ob-python)))
 
