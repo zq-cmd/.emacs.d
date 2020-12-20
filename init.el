@@ -258,6 +258,8 @@
 (global-set-key (kbd "C-c l") 'org-store-link)
 (global-set-key (kbd "C-c M-l") 'org-insert-last-stored-link)
 (global-set-key (kbd "C-c C-l") 'org-insert-link)
+(global-set-key (kbd "C-c .") 'org-time-stamp)
+(global-set-key (kbd "C-c !") 'org-time-stamp-inactive)
 (global-set-key (kbd "C-c @ >") 'org-next-link)
 (global-set-key (kbd "C-c @ <") 'org-previous-link)
 
@@ -309,6 +311,7 @@
   (define-key python-mode-map (kbd "C-c C-L") 'python-shell-send-file)
   (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
   (define-key python-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
+  (define-key python-mode-map (kbd "C-c C-l") 'org-insert-link)
   (with-eval-after-load 'org
     (require 'ob-python)))
 
