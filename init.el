@@ -27,6 +27,7 @@
                                   posframe
                                   auctex
                                   cdlatex
+                                  org2ctex
                                   htmlize
                                   company
                                   markdown-mode
@@ -215,19 +216,29 @@
 ;;; ido
 (recentf-mode 1)
 
-(setq ido-use-virtual-buffers t)
+(setq ido-use-virtual-buffers t
+      ido-use-url-at-point t
+      ido-use-filename-at-point t
+      ido-enable-dot-prefix t
+      ido-show-dot-for-dired t)
 
 (require 'ido)
 
 (ido-everywhere 1)
 
-(fido-mode 1)
-
-(+setq-hook 'icomplete-minibuffer-setup-hook
-            completion-styles '(substring))
-
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "M-X") 'smex-major-mode-commands)
+
+(defun +completing-read-around
+    (func prompt collection &optional predicate require-match
+          initial-input hist def inherit-input-method)
+  (if (bound-and-true-p ido-cur-list)
+      (funcall func prompt collection predicate require-match
+               initial-input hist def inherit-input-method)
+    (let ((allcomp (all-completions (or initial-input "") collection predicate)))
+      (ido-completing-read prompt allcomp nil require-match initial-input hist def inherit-input-method))))
+
+(advice-add 'completing-read :around '+completing-read-around)
 
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
