@@ -12,26 +12,26 @@
 
 (setq package-archives
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-	("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(zenburn-theme
-				  god-mode
-				  which-key
-				  smex
-				  wgrep
-				  expand-region
-				  multiple-cursors
-				  auto-yasnippet
-				  yasnippet-snippets
-				  pyim
-				  posframe
-				  auctex
-				  cdlatex
-				  htmlize
-				  company
-				  markdown-mode
-				  eglot
-				  pdf-tools))
+                                  god-mode
+                                  which-key
+                                  smex
+                                  wgrep
+                                  expand-region
+                                  multiple-cursors
+                                  auto-yasnippet
+                                  yasnippet-snippets
+                                  pyim
+                                  posframe
+                                  auctex
+                                  cdlatex
+                                  htmlize
+                                  company
+                                  markdown-mode
+                                  eglot
+                                  pdf-tools))
 
 (require 'package)
 
@@ -44,10 +44,13 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
+(blink-cursor-mode -1)
+
+(setq visible-bell t)
 
 (setq inhibit-splash-screen t)
 
-(setq indent-tabs-mode nil)
+(setq-default indent-tabs-mode nil)
 
 (show-paren-mode 1)
 (electric-pair-mode 1)
@@ -77,19 +80,19 @@
       tramp-completion-use-auth-sources nil
       eshell-modules-list
       '(eshell-alias
-	eshell-basic
-	eshell-cmpl
-	eshell-dirs
-	eshell-glob
-	eshell-hist
-	eshell-ls
-	eshell-pred
-	eshell-prompt
-	eshell-rebind
-	eshell-script
-	eshell-term
-	eshell-tramp
-	eshell-unix)
+        eshell-basic
+        eshell-cmpl
+        eshell-dirs
+        eshell-glob
+        eshell-hist
+        eshell-ls
+        eshell-pred
+        eshell-prompt
+        eshell-rebind
+        eshell-script
+        eshell-term
+        eshell-tramp
+        eshell-unix)
       eshell-cd-on-directory nil)
 
 (global-set-key (kbd "C-x C-w") 'eshell)
@@ -112,15 +115,15 @@
 (defun +browse-kill-ring ()
   (interactive)
   (let ((buffer (or (get-buffer "*browse kill ring*")
-		    (generate-new-buffer "*browse kill ring*"))))
+                    (generate-new-buffer "*browse kill ring*"))))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
-	(erase-buffer)
-	(dolist (text kill-ring)
-	  (insert text "\n"))
-	(goto-char (point-min))
-	(setq buffer-read-only t)
-	(set-buffer-modified-p nil)))
+        (erase-buffer)
+        (dolist (text kill-ring)
+          (insert text "\n"))
+        (goto-char (point-min))
+        (setq buffer-read-only t)
+        (set-buffer-modified-p nil)))
     (switch-to-buffer-other-window buffer)))
 
 (global-set-key (kbd "C-x C-y") '+browse-kill-ring)
@@ -164,7 +167,7 @@
       company-dabbrev-other-buffers nil
       company-frontends
       '(company-pseudo-tooltip-unless-just-one-frontend
-	company-preview-if-just-one-frontend)
+        company-preview-if-just-one-frontend)
       company-backends
       '(company-files (company-dabbrev-code company-keywords) company-dabbrev))
 
@@ -220,7 +223,7 @@
 (fido-mode 1)
 
 (+setq-hook 'icomplete-minibuffer-setup-hook
-	    completion-styles '(substring))
+            completion-styles '(substring))
 
 (global-set-key (kbd "M-x") 'smex)
 (global-set-key (kbd "M-X") 'smex-major-mode-commands)
@@ -275,7 +278,7 @@
 (require 'hideshow)
 
 (dolist (mode '(hs-minor-mode
-		outline-minor-mode))
+                outline-minor-mode))
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
@@ -294,8 +297,8 @@
 
 ;;; elisp
 (+setq-hook 'emacs-lisp-mode-hook
-	    outline-regexp ";;[;\^L]+ "
-	    company-backends '(company-capf company-files company-dabbrev-code company-dabbrev))
+            outline-regexp ";;[;\^L]+ "
+            company-backends '(company-capf company-files company-dabbrev-code company-dabbrev))
 
 ;;; python
 (setq python-indent-guess-indent-offset nil
@@ -303,8 +306,8 @@
       org-babel-python-command "python3")
 
 (+setq-hook 'python-mode-hook
-	    outline-regexp "#[#\^L]+ "
-	    outline-heading-end-regexp "\n")
+            outline-regexp "#[#\^L]+ "
+            outline-heading-end-regexp "\n")
 
 (with-eval-after-load 'python
   (define-key python-mode-map (kbd "C-c p") 'run-python)
@@ -375,9 +378,9 @@
 (setq-default pyim-english-input-switch-functions '(+pyim-probe-god-mode-p))
 
 (+setq-hook 'org-mode-hook
-	    pyim-english-input-switch-functions
-	    '(+pyim-probe-god-mode-p
-	      org-inside-LaTeX-fragment-p))
+            pyim-english-input-switch-functions
+            '(+pyim-probe-god-mode-p
+              org-inside-LaTeX-fragment-p))
 
 (with-eval-after-load 'pyim
   (defun pyim-punctuation-full-width-p ())
