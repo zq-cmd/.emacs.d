@@ -67,6 +67,9 @@
 (load-theme 'zenburn t)
 
 ;;; tool
+(define-key special-mode-map (kbd "n") 'next-line)
+(define-key special-mode-map (kbd "p") 'previous-line)
+
 (setq confirm-kill-emacs 'y-or-n-p
       vc-handled-backends '(Git)
       vc-make-backup-files t
@@ -88,9 +91,6 @@
 	eshell-tramp
 	eshell-unix)
       eshell-cd-on-directory nil)
-
-(define-key special-mode-map (kbd "n") 'next-line)
-(define-key special-mode-map (kbd "p") 'previous-line)
 
 (global-set-key (kbd "C-x C-w") 'eshell)
 
@@ -151,7 +151,7 @@
 
 (global-set-key (kbd "C-x C-a") +aya-map)
 (global-set-key (kbd "C-o") 'aya-open-line)
-(global-set-key (kbd "C-O") 'aya-expand)
+(global-set-key (kbd "C-S-o") 'aya-expand)
 
 (setq completion-styles '(basic)
       dabbrev-case-replace nil
@@ -230,13 +230,13 @@
 
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-C C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-C C->") 'mc/mark-all-like-this-in-defun)
-(global-set-key (kbd "C-C C-C") 'mc/edit-lines)
+(global-set-key (kbd "C-S-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-S-c C->") 'mc/mark-all-like-this-in-defun)
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
 (global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
 ;;; org
-(setq org-modules '(org-mouse ol-eww ol-eshell ol-info)
+(setq org-modules '(ol-eww ol-eshell ol-info)
       org-export-backends '(html)
       org-html-postamble nil
       org-html-validation-link nil
@@ -251,13 +251,20 @@
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
-(global-set-key (kbd "C-c l o") 'org-open-at-point)
-(global-set-key (kbd "C-c l s") 'org-store-link)
-(global-set-key (kbd "C-c l l") 'org-insert-last-stored-link)
-(global-set-key (kbd "C-c l i") 'org-insert-link)
-(global-set-key (kbd "C-c l n") 'org-next-link)
-(global-set-key (kbd "C-c l p") 'org-previous-link)
-(global-set-key (kbd "C-c l g") 'org-mark-ring-goto)
+(autoload 'org-open-at-point "org" "org open at point" t)
+
+(defvar +org-link-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "o") 'org-open-at-point)
+    (define-key map (kbd "s") 'org-store-link)
+    (define-key map (kbd "l") 'org-insert-link)
+    (define-key map (kbd "L") 'org-insert-last-stored-link)
+    (define-key map (kbd "n") 'org-next-link)
+    (define-key map (kbd "p") 'org-previous-link)
+    (define-key map (kbd "b") 'org-mark-ring-goto)
+    map))
+
+(global-set-key (kbd "C-c l") +org-link-map)
 
 ;;; prog
 (setq-default display-line-numbers-width 4)
@@ -301,7 +308,6 @@
 
 (with-eval-after-load 'python
   (define-key python-mode-map (kbd "C-c p") 'run-python)
-  (define-key python-mode-map (kbd "C-c f") 'python-eldoc-at-point)
   (define-key python-mode-map (kbd "C-c C-p") 'outline-previous-heading)
   (define-key python-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
   (with-eval-after-load 'org
