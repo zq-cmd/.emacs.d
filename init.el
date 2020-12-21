@@ -70,6 +70,8 @@
 (load-theme 'zenburn t)
 
 ;;; tool
+(global-set-key (kbd "C-?") 'undo-redo)
+
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
 
@@ -88,7 +90,6 @@
         eshell-ls
         eshell-pred
         eshell-prompt
-        eshell-rebind
         eshell-script
         eshell-term
         eshell-tramp
@@ -230,7 +231,6 @@
 
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
-
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
 (global-set-key (kbd "C-S-c C-<") 'mc/mark-all-like-this)
