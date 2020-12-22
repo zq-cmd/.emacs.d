@@ -74,7 +74,7 @@
       aw-dispatch-always t)
 
 (global-set-key (kbd "M-o") 'ace-window)
-(global-set-key (kbd "M-O") 'link-hint-open-link)
+(global-set-key (kbd "M-O") '+link-hint-dispatch)
 (global-set-key (kbd "C-z") (+menu-if current-input-method
                                       '+avy-pinyin-goto-char
                                       'avy-goto-char))
@@ -95,11 +95,18 @@
        (pinyinlib-build-regexp-char char))
      :window-flip arg)))
 
-(defun +link-hint-open-link-around (func)
-  (let ((avy-single-candidate-jump nil))
-    (funcall func)))
-
-(advice-add 'link-hint-open-link :around '+link-hint-open-link-around)
+(defun +link-hint-dispatch (&optional arg)
+  (interactive "P")
+  (if arg
+      (pcase (read-char-exclusive
+              "[w]copy | [c]opy multi | [C]opy all | [o]pen multi | [O]pen all")
+        (?w (link-hint-copy-link))
+        (?c (link-hint-copy-multiple-links))
+        (?C (link-hint-copy-all-links))
+        (?o (link-hint-open-multiple-links))
+        (?O (link-hint-open-all-links)))
+    (let ((avy-single-candidate-jump nil))
+      (link-hint-open-link))))
 
 (load-theme 'zenburn t)
 
