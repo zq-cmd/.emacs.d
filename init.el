@@ -25,16 +25,16 @@
                                   multiple-cursors
                                   auto-yasnippet
                                   yasnippet-snippets
+                                  company
                                   pyim
                                   posframe
                                   auctex
                                   cdlatex
                                   org2ctex
                                   htmlize
-                                  company
+                                  pdf-tools
                                   markdown-mode
-                                  eglot
-                                  pdf-tools))
+                                  eglot))
 
 (require 'package)
 
@@ -108,6 +108,14 @@
     (let ((avy-single-candidate-jump nil))
       (link-hint-open-link))))
 
+(global-set-key (kbd "C-=") 'er/expand-region)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C-S-c C-<") 'mc/mark-all-like-this)
+(global-set-key (kbd "C-S-c C->") 'mc/mark-all-like-this-in-defun)
+(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
+(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
+
 (load-theme 'zenburn t)
 
 ;;; tool
@@ -117,6 +125,7 @@
 (define-key special-mode-map (kbd "p") 'previous-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
+(define-key special-mode-map (kbd "o") '+link-hint-dispatch)
 
 (setq confirm-kill-emacs 'y-or-n-p
       vc-handled-backends '(Git)
@@ -283,15 +292,6 @@
     (funcall func)))
 
 (advice-add 'read-extended-command :around '+read-extended-command-around)
-
-;;; edit
-(global-set-key (kbd "C-=") 'er/expand-region)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-S-c C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-S-c C->") 'mc/mark-all-like-this-in-defun)
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
 ;;; org
 (setq org-modules '(ol-eww ol-eshell ol-info)
