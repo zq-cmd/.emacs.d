@@ -18,6 +18,9 @@
                                   god-mode
                                   which-key
                                   wgrep
+                                  ace-window
+                                  link-hint
+                                  pinyinlib
                                   expand-region
                                   multiple-cursors
                                   auto-yasnippet
@@ -67,6 +70,37 @@
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
 
+(setq avy-background t
+      aw-dispatch-always t)
+
+(global-set-key (kbd "M-o") 'ace-window)
+(global-set-key (kbd "M-O") 'link-hint-open-link)
+(global-set-key (kbd "C-z") (+menu-if current-input-method
+                                      '+avy-pinyin-goto-char
+                                      'avy-goto-char))
+(global-set-key (kbd "M-z") 'avy-goto-word-1)
+(global-set-key (kbd "C-M-z") 'avy-goto-line)
+(global-set-key (kbd "C-S-z") 'avy-resume)
+(define-key isearch-mode-map (kbd "C-z") 'avy-isearch)
+
+(defun +avy-pinyin-goto-char (char &optional arg)
+  (interactive (list (read-char "char: " t)
+                     current-prefix-arg))
+  (require 'avy)
+  (require 'pinyinlib)
+  (avy-with +avy-pinyin-goto-char
+    (avy-jump
+     (if (= 13 char)
+         "\n"
+       (pinyinlib-build-regexp-char char))
+     :window-flip arg)))
+
+(defun +link-hint-open-link-around (func)
+  (let ((avy-single-candidate-jump nil))
+    (funcall func)))
+
+(advice-add 'link-hint-open-link :around '+link-hint-open-link-around)
+
 (load-theme 'zenburn t)
 
 ;;; tool
@@ -74,6 +108,8 @@
 
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
+(define-key special-mode-map (kbd "s") 'isearch-forward)
+(define-key special-mode-map (kbd "r") 'isearch-backward)
 
 (setq confirm-kill-emacs 'y-or-n-p
       vc-handled-backends '(Git)
@@ -180,16 +216,17 @@
 (setq god-exempt-predicates nil
       god-exempt-major-modes nil
       god-mode-enable-function-key-translation nil
-      god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-") ("." . "C-M-")))
+      god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-")))
 
 (require 'god-mode)
 (require 'god-mode-isearch)
 
 (global-set-key (kbd "<escape>") 'god-mode-all)
-(define-key god-local-mode-map (kbd "z") 'repeat)
+(define-key god-local-mode-map (kbd ".") 'repeat)
 (define-key god-local-mode-map (kbd "q") 'quit-window)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
+(define-key god-mode-isearch-map (kbd "z") 'avy-isearch)
 
 (setq-default cursor-type 'hbar)
 
