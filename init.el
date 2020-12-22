@@ -17,7 +17,6 @@
 (setq package-selected-packages '(zenburn-theme
                                   god-mode
                                   which-key
-                                  smex
                                   wgrep
                                   expand-region
                                   multiple-cursors
@@ -218,16 +217,11 @@
 
 (setq ido-use-virtual-buffers t
       ido-use-url-at-point t
-      ido-use-filename-at-point t
-      ido-enable-dot-prefix t
-      ido-show-dot-for-dired t)
+      ido-use-filename-at-point t)
 
 (require 'ido)
 
 (ido-everywhere 1)
-
-(global-set-key (kbd "M-x") 'smex)
-(global-set-key (kbd "M-X") 'smex-major-mode-commands)
 
 (defun +completing-read-around
     (func prompt collection &optional predicate require-match
@@ -239,6 +233,12 @@
       (ido-completing-read prompt allcomp nil require-match initial-input hist def inherit-input-method))))
 
 (advice-add 'completing-read :around '+completing-read-around)
+
+(defun +read-extended-command-around (func)
+  (let ((ido-enable-flex-matching t))
+    (funcall func)))
+
+(advice-add 'read-extended-command :around '+read-extended-command-around)
 
 ;;; edit
 (global-set-key (kbd "C-=") 'er/expand-region)
