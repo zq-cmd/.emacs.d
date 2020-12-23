@@ -24,7 +24,6 @@
                                   expand-region
                                   multiple-cursors
                                   auto-yasnippet
-                                  yasnippet-snippets
                                   company
                                   pyim
                                   posframe
@@ -42,6 +41,33 @@
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
+
+(defvar +private-server nil)
+(defvar +private-port "22")
+
+(let ((file "~/.emacs.d/rsync/private.el"))
+  (if (file-exists-p file)
+      (load-file file)))
+
+(defun +private-rsync-push ()
+  (interactive)
+  (if +private-server
+      (async-shell-command (format
+                            "rsync -rvz -e 'ssh -p %s' ~/.emacs.d/rsync %s:/root/emacs"
+                            +private-port
+                            +private-server)
+                           "*rsync output*"
+                           "**rsync error")))
+
+(defun +private-rsync-pull ()
+  (interactive)
+  (if +private-server
+      (async-shell-command (format
+                            "rsync -rvz -e 'ssh -p %s' %s:/root/emacs/rsync ~/.emacs.d"
+                            +private-port
+                            +private-server)
+                           "*rsync output*"
+                           "*rsync error*")))
 
 ;;; ui
 (tool-bar-mode -1)
@@ -108,6 +134,8 @@
     (let ((avy-single-candidate-jump nil))
       (link-hint-open-link))))
 
+(setq mc/list-file "~/.emacs.d/rsync/.mc-lists.el")
+
 (global-set-key (kbd "C-=") 'er/expand-region)
 (global-set-key (kbd "C->") 'mc/mark-next-like-this)
 (global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
@@ -132,6 +160,7 @@
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil
+      eshell-aliases-file "~/.emacs.d/rsync/alias"
       eshell-modules-list
       '(eshell-alias
         eshell-basic
@@ -183,14 +212,13 @@
 
 (setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
 
-(setq yas-alias-to-yas/prefix-p nil
+(setq abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
+      aya-persist-snippets-dir "~/.emacs.d/rsync/snippets"
+      yas-snippet-dirs '("~/.emacs.d/rsync/snippets")
+      yas-alias-to-yas/prefix-p nil
       yas-prompt-functions '(yas-maybe-ido-prompt))
 
-(setq yas-minor-mode-map (make-sparse-keymap))
-
 (yas-global-mode 1)
-
-(define-key yas-minor-mode-map (kbd "<tab>") yas-maybe-expand)
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 

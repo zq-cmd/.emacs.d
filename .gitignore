@@ -1,13 +1,12 @@
 #*
 .#*
+rsync
 TAGS
 auto-save-list
 elpa
 url
 tramp
 eshell
-abbrev_defs
-snippets
 pyim
 bookmarks
 projects
@@ -15,4 +14,3 @@ recentf
 ido.last
 package-quickstart.el
 custom.el
-.mc-lists.el
