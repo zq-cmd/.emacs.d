@@ -86,6 +86,8 @@
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 
+(global-set-key (kbd "C-S-q") 'view-mode)
+
 (windmove-default-keybindings)
 
 (winner-mode 1)
@@ -96,8 +98,7 @@
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
 
-(setq avy-background t
-      aw-dispatch-always t)
+(setq avy-background t)
 
 (global-set-key (kbd "M-o") 'ace-window)
 (global-set-key (kbd "M-O") '+link-hint-dispatch)
@@ -147,12 +148,14 @@
 (load-theme 'zenburn t)
 
 ;;; tool
+(global-set-key (kbd "C-.") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
 
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
+(define-key special-mode-map (kbd "z") 'avy-goto-char)
 (define-key special-mode-map (kbd "o") '+link-hint-dispatch)
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -187,6 +190,8 @@
 (global-set-key (kbd "C-x b") 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
+(setq dired-listing-switches "-alh")
+
 (setq wgrep-auto-save-buffer t)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
@@ -205,7 +210,8 @@
           (insert text "\n"))
         (goto-char (point-min))
         (setq buffer-read-only t)
-        (set-buffer-modified-p nil)))
+        (set-buffer-modified-p nil))
+      (text-mode))
     (switch-to-buffer-other-window buffer)))
 
 (global-set-key (kbd "C-x C-y") '+browse-kill-ring)
@@ -258,27 +264,21 @@
 
 ;;; god
 (setq god-exempt-predicates nil
-      god-exempt-major-modes nil
       god-mode-enable-function-key-translation nil
       god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-")))
 
 (require 'god-mode)
 (require 'god-mode-isearch)
 
-(global-set-key (kbd "<escape>") 'god-mode-all)
-(define-key god-local-mode-map (kbd ".") 'repeat)
+(global-set-key (kbd "<escape>") 'god-local-mode)
 (define-key god-local-mode-map (kbd "q") 'quit-window)
+(define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
+(define-key god-local-mode-map (kbd ">") 'end-of-buffer)
+(define-key god-local-mode-map (kbd "SPC") 'scroll-up-command)
+(define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
 (define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
 (define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 (define-key god-mode-isearch-map (kbd "z") 'avy-isearch)
-
-(setq-default cursor-type 'hbar)
-
-(defun +god-mode-update-cursor ()
-  (setq cursor-type (if god-local-mode 'box 'hbar)))
-
-(dolist (hook '(god-mode-enabled-hook god-mode-disabled-hook))
-  (add-hook hook '+god-mode-update-cursor))
 
 (god-mode-all)
 
@@ -322,7 +322,7 @@
 (advice-add 'read-extended-command :around '+read-extended-command-around)
 
 ;;; org
-(setq org-modules '(ol-eww ol-eshell ol-info)
+(setq org-modules '(org-tempo ol-eww ol-eshell ol-info)
       org-export-backends '(html)
       org-html-postamble nil
       org-html-validation-link nil
