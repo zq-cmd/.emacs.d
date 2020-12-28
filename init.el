@@ -86,10 +86,6 @@
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 
-(global-set-key (kbd "C-S-q") 'view-mode)
-
-(windmove-default-keybindings)
-
 (winner-mode 1)
 
 (global-set-key (kbd "C-x C-o") 'other-window)
@@ -97,6 +93,13 @@
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
 (global-set-key (kbd "C-x C-2") 'split-window-below)
 (global-set-key (kbd "C-x C-3") 'split-window-right)
+(global-set-key (kbd "C-x C-4") ctl-x-4-map)
+(global-set-key (kbd "C-x C-5") ctl-x-5-map)
+(global-set-key (kbd "C-x C-8") 'winner-redo)
+(global-set-key (kbd "C-x C-9") 'winner-undo)
+
+(define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
+(define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
 (setq avy-background t)
 
@@ -163,6 +166,7 @@
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil
+      bookmark-default-file "~/.emacs.d/rsync/bookmarks"
       eshell-aliases-file "~/.emacs.d/rsync/alias"
       eshell-modules-list
       '(eshell-alias
@@ -180,9 +184,7 @@
         eshell-unix)
       eshell-cd-on-directory nil)
 
-(global-set-key (kbd "C-x C-w") 'eshell)
-
-(global-set-key (kbd "C-x f") 'find-file-at-point)
+(global-set-key (kbd "C-x w") 'find-file-at-point)
 
 (global-set-key (kbd "C-x d") 'find-dired)
 (global-set-key (kbd "C-x C-d") 'dired)
@@ -296,9 +298,7 @@
 ;;; ido
 (recentf-mode 1)
 
-(setq ido-use-virtual-buffers t
-      ido-use-url-at-point t
-      ido-use-filename-at-point t)
+(setq ido-use-virtual-buffers t)
 
 (require 'ido)
 
@@ -322,7 +322,7 @@
 (advice-add 'read-extended-command :around '+read-extended-command-around)
 
 ;;; org
-(setq org-modules '(org-tempo ol-eww ol-eshell ol-info)
+(setq org-modules '(org-tempo ol-eshell)
       org-export-backends '(html)
       org-html-postamble nil
       org-html-validation-link nil
