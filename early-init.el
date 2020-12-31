@@ -10,8 +10,7 @@
                   file-name-handler-alist file-name-handler-alist-init)))
 
 (setq default-frame-alist '((tool-bar-lines . 0)
-			    (menu-bar-lines . 0)
-			    (fullscreen . maximized)))
+			    (menu-bar-lines . 0)))
 
 (advice-add 'x-apply-session-resources :override 'ignore)
 

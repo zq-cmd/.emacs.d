@@ -1,3 +1,4 @@
+;;; -*- lexical-binding: t -*-
 ;;; package
 (defmacro +menu-item (&rest body)
   `'(menu-item "" nil :filter (lambda (&optional _) ,@body)))
@@ -19,7 +20,6 @@
                                   which-key
                                   wgrep
                                   ace-window
-                                  link-hint
                                   pinyinlib
                                   expand-region
                                   multiple-cursors
@@ -29,7 +29,6 @@
                                   posframe
                                   auctex
                                   cdlatex
-                                  org2ctex
                                   htmlize
                                   pdf-tools
                                   markdown-mode
@@ -85,6 +84,7 @@
 (electric-pair-mode 1)
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
+(global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 (winner-mode 1)
 
@@ -101,42 +101,37 @@
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
-(setq avy-background t)
+(setq avy-background t
+      avy-single-candidate-jump nil)
 
+(global-set-key (kbd "C-z") '+avy)
+(global-set-key (kbd "M-z") 'avy-resume)
 (global-set-key (kbd "M-o") 'ace-window)
-(global-set-key (kbd "M-O") '+link-hint-dispatch)
-(global-set-key (kbd "C-z") (+menu-if current-input-method
-                                      '+avy-pinyin-goto-char
-                                      'avy-goto-char))
-(global-set-key (kbd "M-z") 'avy-goto-word-1)
-(global-set-key (kbd "C-M-z") 'avy-goto-line)
-(global-set-key (kbd "C-S-z") 'avy-resume)
 (define-key isearch-mode-map (kbd "C-z") 'avy-isearch)
 
-(defun +avy-pinyin-goto-char (char &optional arg)
-  (interactive (list (read-char "char: " t)
-                     current-prefix-arg))
-  (require 'avy)
-  (require 'pinyinlib)
-  (avy-with +avy-pinyin-goto-char
-    (avy-jump
-     (if (= 13 char)
-         "\n"
-       (pinyinlib-build-regexp-char char))
-     :window-flip arg)))
-
-(defun +link-hint-dispatch (&optional arg)
+(defun +avy (&optional arg)
   (interactive "P")
+  (require 'avy)
   (if arg
-      (pcase (read-char-exclusive
-              "[w]copy | [c]opy multi | [C]opy all | [o]pen multi | [O]pen all")
-        (?w (link-hint-copy-link))
-        (?c (link-hint-copy-multiple-links))
-        (?C (link-hint-copy-all-links))
-        (?o (link-hint-open-multiple-links))
-        (?O (link-hint-open-all-links)))
-    (let ((avy-single-candidate-jump nil))
-      (link-hint-open-link))))
+      (let* ((symbol (regexp-quote (or (thing-at-point 'symbol t) "")))
+             (default (format "\\_<%s\\_>" symbol))
+             (regexp (read-string (format "regexp(default:%s): " default) nil nil default)))
+        (avy-with avy-goto-char
+          (avy-jump regexp)))
+    (let ((char (read-char "char: " t)))
+      (cond
+       ((= char 13)
+        (avy-goto-line))
+       ((<= ?A char ?Z)
+        (avy-goto-symbol-1 (downcase char)))
+       (t
+        (avy-with avy-goto-char
+          (avy-jump
+           (if current-input-method
+               (progn
+                 (require 'pinyinlib)
+                 (pinyinlib-build-regexp-char char))
+             (regexp-quote (string char))))))))))
 
 (setq mc/list-file "~/.emacs.d/rsync/.mc-lists.el")
 
@@ -154,12 +149,13 @@
 (global-set-key (kbd "C-.") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
 
+(define-key special-mode-map (kbd "z") '+avy)
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd "z") 'avy-goto-char)
-(define-key special-mode-map (kbd "o") '+link-hint-dispatch)
+(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
+(define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 (setq confirm-kill-emacs 'y-or-n-p
       vc-handled-backends '(Git)
@@ -183,6 +179,8 @@
         eshell-tramp
         eshell-unix)
       eshell-cd-on-directory nil)
+
+(auto-save-visited-mode 1)
 
 (global-set-key (kbd "C-x w") 'find-file-at-point)
 
@@ -265,8 +263,7 @@
 (setcdr (assq 'company-mode minor-mode-alist) '(""))
 
 ;;; god
-(setq god-exempt-predicates nil
-      god-mode-enable-function-key-translation nil
+(setq god-mode-enable-function-key-translation nil
       god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-")))
 
 (require 'god-mode)
@@ -307,7 +304,8 @@
 (defun +completing-read-around
     (func prompt collection &optional predicate require-match
           initial-input hist def inherit-input-method)
-  (if (bound-and-true-p ido-cur-list)
+  (if (or (not require-match)
+          (bound-and-true-p ido-cur-list))
       (funcall func prompt collection predicate require-match
                initial-input hist def inherit-input-method)
     (let ((allcomp (all-completions (or initial-input "") collection predicate)))
@@ -327,10 +325,30 @@
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
-      org-descriptive-links nil
+      org-link-descriptive nil
       org-footnote-auto-adjust t
       org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window)
+      org-src-preserve-indentation t
+      org-src-window-setup 'current-window
+      org-agenda-files '("~/.emacs.d/rsync/org/todos.org")
+      org-directory "~/.emacs.d/rsync/org"
+      org-default-notes-file "~/.emacs.d/rsync/org/notes.org"
+      org-capture-templates '(("n" "NOTE" entry
+                               (file "") "* %?\n  %u")
+                              ("N" "NOTE[a]" entry
+                               (file "") "* %?\n  %u\n  %a")
+                              ("t" "TODO" entry
+                               (file "todos.org") "* TODO %?\n  %u")
+                              ("T" "TODO[a]" entry
+                               (file "todos.org") "* TODO %?\n  %u\n  %a")
+                              ("k" "KILL" entry
+                               (file "") "* %^{heading}\n  %u\n  %c" :immediate-finish t)
+                              ("c" "CLIP" entry
+                               (file "") "* %^{heading}\n  %u\n  %x" :immediate-finish t)
+                              ("r" "REG" entry
+                               (file "") "* %^{heading}\n  %u\n  %i" :immediate-finish t)
+                              ("l" "LOG" item
+                               (file+datetree "logs.org") "    - %?" :unnarrowed t)))
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
@@ -348,6 +366,8 @@
     (define-key map (kbd "n") 'org-next-link)
     (define-key map (kbd "p") 'org-previous-link)
     (define-key map (kbd "b") 'org-mark-ring-goto)
+    (define-key map (kbd "a") 'org-agenda)
+    (define-key map (kbd "c") 'org-capture)
     map))
 
 (global-set-key (kbd "C-c l") +org-link-map)
@@ -418,7 +438,7 @@
    (16.0 . 16.5)
    (18.0 . 18.0)])
 
-(defvar +text-scale-index 3)
+(defvar +text-scale-index 4)
 
 (defun +text-scale-set (&optional frame)
   (when (display-graphic-p)
