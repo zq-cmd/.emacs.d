@@ -54,9 +54,7 @@
       (async-shell-command (format
                             "rsync -rvz -e 'ssh -p %s' ~/.emacs.d/rsync %s:/root/emacs"
                             +private-port
-                            +private-server)
-                           "*rsync output*"
-                           "**rsync error")))
+                            +private-server))))
 
 (defun +private-rsync-pull ()
   (interactive)
@@ -64,9 +62,7 @@
       (async-shell-command (format
                             "rsync -rvz -e 'ssh -p %s' %s:/root/emacs/rsync ~/.emacs.d"
                             +private-port
-                            +private-server)
-                           "*rsync output*"
-                           "*rsync error*")))
+                            +private-server))))
 
 ;;; ui
 (tool-bar-mode -1)
@@ -83,6 +79,9 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
+(global-set-key (kbd "M-R") 'raise-sexp)
+(global-set-key (kbd "M-S") 'delete-pair)
+
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
@@ -98,15 +97,19 @@
 (global-set-key (kbd "C-x C-8") 'winner-redo)
 (global-set-key (kbd "C-x C-9") 'winner-undo)
 
+(define-key ctl-x-5-map (kbd "C-0") 'delete-frame)
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
-(setq avy-background t
+(setq aw-scope 'frame
+      avy-background t
       avy-single-candidate-jump nil)
 
 (global-set-key (kbd "C-z") '+avy)
 (global-set-key (kbd "M-z") 'avy-resume)
+(global-set-key (kbd "C-M-z") '+avy-defun)
 (global-set-key (kbd "M-o") 'ace-window)
+(global-set-key (kbd "M-O") '+ace-window)
 (define-key isearch-mode-map (kbd "C-z") 'avy-isearch)
 
 (defun +avy (&optional arg)
@@ -133,6 +136,23 @@
                  (pinyinlib-build-regexp-char char))
              (regexp-quote (string char))))))))))
 
+(defun +avy-defun ()
+  (interactive)
+  (require 'avy)
+  (let (beg end avy-all-windows)
+    (cl-destructuring-bind (beg . end)
+        (bounds-of-thing-at-point 'defun)
+      (avy-with avy-goto-char
+        (avy-jump
+         "\\_<\\(\\sw\\|\\s_\\)"
+         :beg (max (window-start) beg)
+         :end (min (window-end) end))))))
+
+(defun +ace-window (&optional arg)
+  (interactive "P")
+  (let ((aw-dispatch-always t))
+    (ace-window arg)))
+
 (setq mc/list-file "~/.emacs.d/rsync/.mc-lists.el")
 
 (global-set-key (kbd "C-=") 'er/expand-region)
@@ -149,9 +169,16 @@
 (global-set-key (kbd "C-.") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
 
+(define-key universal-argument-map (kbd "u") 'universal-argument-more)
+
 (define-key special-mode-map (kbd "z") '+avy)
+(define-key special-mode-map (kbd "u") 'universal-argument)
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
+(define-key special-mode-map (kbd "f") 'forward-char)
+(define-key special-mode-map (kbd "b") 'backward-char)
+(define-key special-mode-map (kbd "a") 'move-beginning-of-line)
+(define-key special-mode-map (kbd "e") 'move-end-of-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
 (define-key special-mode-map (kbd "x") 'god-mode-self-insert)
@@ -269,7 +296,13 @@
 (require 'god-mode)
 (require 'god-mode-isearch)
 
+(defun +self-insert-command ()          ;god mode remap self-insert-command
+  (interactive)
+  (self-insert-command 1))
+
 (global-set-key (kbd "<escape>") 'god-local-mode)
+(dolist (key '("(" ")" "[" "]" "{" "}" "`" "'" "\""))
+  (define-key god-local-mode-map (kbd key) '+self-insert-command))
 (define-key god-local-mode-map (kbd "q") 'quit-window)
 (define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
 (define-key god-local-mode-map (kbd ">") 'end-of-buffer)
@@ -280,6 +313,8 @@
 (define-key god-mode-isearch-map (kbd "z") 'avy-isearch)
 
 (god-mode-all)
+
+(add-hook 'god-local-mode-hook 'company-abort)
 
 (require 'which-key)
 
@@ -360,9 +395,9 @@
 (defvar +org-link-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "o") 'org-open-at-point)
-    (define-key map (kbd "s") 'org-store-link)
-    (define-key map (kbd "l") 'org-insert-link)
-    (define-key map (kbd "L") 'org-insert-last-stored-link)
+    (define-key map (kbd "w") 'org-store-link)
+    (define-key map (kbd "y") 'org-insert-last-stored-link)
+    (define-key map (kbd "i") 'org-insert-link)
     (define-key map (kbd "n") 'org-next-link)
     (define-key map (kbd "p") 'org-previous-link)
     (define-key map (kbd "b") 'org-mark-ring-goto)
@@ -445,7 +480,7 @@
     (let ((scale (aref +text-scale-list +text-scale-index)))
       (set-face-attribute
        'default frame
-       :font (font-spec :anme "Ubuntu Mono" :size (car scale)))
+       :font (font-spec :name "Ubuntu Mono" :size (car scale)))
       (set-fontset-font
        (frame-parameter frame 'font)
        'han
