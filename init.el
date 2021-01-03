@@ -23,7 +23,7 @@
                                   pinyinlib
                                   expand-region
                                   multiple-cursors
-                                  auto-yasnippet
+                                  yasnippet
                                   company
                                   pyim
                                   posframe
@@ -121,7 +121,7 @@
              (regexp (read-string (format "regexp(default:%s): " default) nil nil default)))
         (avy-with avy-goto-char
           (avy-jump regexp)))
-    (let ((char (read-char "char: " t)))
+    (let ((char (read-char "char: ")))
       (cond
        ((= char 13)
         (avy-goto-line))
@@ -148,10 +148,11 @@
          :beg (max (window-start) beg)
          :end (min (window-end) end))))))
 
-(defun +ace-window (&optional arg)
-  (interactive "P")
+(defun +ace-window ()
+  (interactive)
+  (require 'ace-window)
   (let ((aw-dispatch-always t))
-    (ace-window arg)))
+    (ace-window nil)))
 
 (setq mc/list-file "~/.emacs.d/rsync/.mc-lists.el")
 
@@ -246,7 +247,6 @@
 (setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
 
 (setq abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
-      aya-persist-snippets-dir "~/.emacs.d/rsync/snippets"
       yas-snippet-dirs '("~/.emacs.d/rsync/snippets")
       yas-alias-to-yas/prefix-p nil
       yas-prompt-functions '(yas-maybe-ido-prompt))
@@ -255,20 +255,54 @@
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 
-(defvar +aya-map
+(defun +yas-expand ()
+  (interactive)
+  (cond ((expand-abbrev))
+        ((yas-active-snippets)
+         (yas-next-field-or-maybe-expand))
+        ((yas-expand))
+        (t (open-line 1))))
+
+(defvar +yas-temp "")
+
+(defun +yas-temp-expand ()
+  (interactive)
+  (yas-expand-snippet +yas-temp))
+
+(defun +yas-temp-save ()
+  (interactive)
+  (setq +yas-temp (buffer-string))
+  (winner-undo))
+
+(defun +yas-temp-edit ()
+  (interactive)
+  (let ((buffer (or (get-buffer "*yas temp*")
+                    (generate-new-buffer "*yas temp*"))))
+    (with-current-buffer buffer
+      (let ((inhibit-read-only t))
+        (erase-buffer)
+        (insert +yas-temp)
+        (text-mode)
+        (local-set-key (kbd "C-c C-c") '+yas-temp-save)))
+    (switch-to-buffer-other-window buffer)))
+
+(defun +yas-new-snippet ()
+  (interactive)
+  (let ((yas-new-snippet-default (concat yas-new-snippet-default
+                                         +yas-temp)))
+    (yas-new-snippet)))
+
+(defvar +yas-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "i") 'yas-insert-snippet)
-    (define-key map (kbd "n") 'yas-new-snippet)
     (define-key map (kbd "v") 'yas-visit-snippet-file)
-    (define-key map (kbd "c") 'aya-create)
-    (define-key map (kbd "e") 'aya-expand)
-    (define-key map (kbd "s") 'aya-persist-snippet)
-    (define-key map (kbd "y") 'aya-yank-snippet)
+    (define-key map (kbd "n") '+yas-new-snippet)
+    (define-key map (kbd "e") '+yas-temp-edit)
     map))
 
-(global-set-key (kbd "C-x C-a") +aya-map)
-(global-set-key (kbd "C-o") 'aya-open-line)
-(global-set-key (kbd "C-S-o") 'aya-expand)
+(global-set-key (kbd "C-x C-a") +yas-map)
+(global-set-key (kbd "C-o") '+yas-expand)
+(global-set-key (kbd "C-S-o") '+yas-temp-expand)
 
 (setq completion-styles '(basic)
       dabbrev-case-replace nil
@@ -300,6 +334,7 @@
   (interactive)
   (self-insert-command 1))
 
+(global-set-key (kbd "C-x g") 'god-local-mode)
 (global-set-key (kbd "<escape>") 'god-local-mode)
 (dolist (key '("(" ")" "[" "]" "{" "}" "`" "'" "\""))
   (define-key god-local-mode-map (kbd key) '+self-insert-command))
