@@ -19,10 +19,8 @@
                                   god-mode
                                   which-key
                                   wgrep
-                                  ace-window
-                                  pinyinlib
+                                  avy
                                   expand-region
-                                  multiple-cursors
                                   yasnippet
                                   company
                                   pyim
@@ -40,29 +38,6 @@
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
-
-(defvar +private-server nil)
-(defvar +private-port "22")
-
-(let ((file "~/.emacs.d/rsync/private.el"))
-  (if (file-exists-p file)
-      (load-file file)))
-
-(defun +private-rsync-push ()
-  (interactive)
-  (if +private-server
-      (async-shell-command (format
-                            "rsync -rvz -e 'ssh -p %s' ~/.emacs.d/rsync %s:/root/emacs"
-                            +private-port
-                            +private-server))))
-
-(defun +private-rsync-pull ()
-  (interactive)
-  (if +private-server
-      (async-shell-command (format
-                            "rsync -rvz -e 'ssh -p %s' %s:/root/emacs/rsync ~/.emacs.d"
-                            +private-port
-                            +private-server))))
 
 ;;; ui
 (tool-bar-mode -1)
@@ -82,11 +57,15 @@
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-S") 'delete-pair)
 
+(global-set-key (kbd "C-=") 'er/expand-region)
+
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 (winner-mode 1)
 
+(global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "M-O") 'delete-other-windows)
 (global-set-key (kbd "C-x C-o") 'other-window)
 (global-set-key (kbd "C-x C-0") 'delete-window)
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
@@ -101,68 +80,33 @@
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
-(setq aw-scope 'frame
-      avy-background t
-      avy-single-candidate-jump nil)
+(setq avy-background t
+      avy-single-candidate-jump nil
+      avy-goto-word-0-regexp "\\_<\\(\\sw\\|\\s_\\)")
 
 (global-set-key (kbd "C-z") '+avy)
-(global-set-key (kbd "M-z") 'avy-resume)
-(global-set-key (kbd "C-M-z") '+avy-defun)
-(global-set-key (kbd "M-o") 'ace-window)
-(global-set-key (kbd "M-O") '+ace-window)
 (define-key isearch-mode-map (kbd "C-z") 'avy-isearch)
 
 (defun +avy (&optional arg)
   (interactive "P")
   (require 'avy)
   (if arg
-      (let* ((symbol (regexp-quote (or (thing-at-point 'symbol t) "")))
-             (default (format "\\_<%s\\_>" symbol))
-             (regexp (read-string (format "regexp(default:%s): " default) nil nil default)))
-        (avy-with avy-goto-char
-          (avy-jump regexp)))
+      (avy-resume)
     (let ((char (read-char "char: ")))
       (cond
-       ((= char 13)
+       ((= char ?\s)
+        (avy-goto-word-0 nil))
+       ((= char ?\C-m)
         (avy-goto-line))
        ((<= ?A char ?Z)
         (avy-goto-symbol-1 (downcase char)))
        (t
         (avy-with avy-goto-char
           (avy-jump
-           (if current-input-method
-               (progn
-                 (require 'pinyinlib)
-                 (pinyinlib-build-regexp-char char))
+           (if (and current-input-method
+                    (<= ?a char ?z))
+               (pyim-cregexp-build char)
              (regexp-quote (string char))))))))))
-
-(defun +avy-defun ()
-  (interactive)
-  (require 'avy)
-  (let (beg end avy-all-windows)
-    (cl-destructuring-bind (beg . end)
-        (bounds-of-thing-at-point 'defun)
-      (avy-with avy-goto-char
-        (avy-jump
-         "\\_<\\(\\sw\\|\\s_\\)"
-         :beg (max (window-start) beg)
-         :end (min (window-end) end))))))
-
-(defun +ace-window ()
-  (interactive)
-  (require 'ace-window)
-  (let ((aw-dispatch-always t))
-    (ace-window nil)))
-
-(setq mc/list-file "~/.emacs.d/rsync/.mc-lists.el")
-
-(global-set-key (kbd "C-=") 'er/expand-region)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C-S-c C-<") 'mc/mark-all-like-this)
-(global-set-key (kbd "C-S-c C->") 'mc/mark-all-like-this-in-defun)
-(global-set-key (kbd "C-S-c C-S-c") 'mc/edit-lines)
-(global-set-key (kbd "C-S-<mouse-1>") 'mc/add-cursor-on-click)
 
 (load-theme 'zenburn t)
 
@@ -219,6 +163,15 @@
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 (setq dired-listing-switches "-alh")
+
+(defun +dired-do-xdg-open ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (call-process-shell-command
+     (concat "xdg-open " file))))
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
 (setq wgrep-auto-save-buffer t)
 
@@ -378,7 +331,7 @@
           (bound-and-true-p ido-cur-list))
       (funcall func prompt collection predicate require-match
                initial-input hist def inherit-input-method)
-    (let ((allcomp (all-completions (or initial-input "") collection predicate)))
+    (let ((allcomp (all-completions "" collection predicate)))
       (ido-completing-read prompt allcomp nil require-match initial-input hist def inherit-input-method))))
 
 (advice-add 'completing-read :around '+completing-read-around)
