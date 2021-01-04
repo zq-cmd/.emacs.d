@@ -54,8 +54,8 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(global-set-key (kbd "M-R") 'raise-sexp)
-(global-set-key (kbd "M-S") 'delete-pair)
+(global-set-key (kbd "C-S-r") 'raise-sexp)
+(global-set-key (kbd "C-S-d") 'delete-pair)
 
 (global-set-key (kbd "C-=") 'er/expand-region)
 
@@ -214,42 +214,38 @@
         ((yas-active-snippets)
          (yas-next-field-or-maybe-expand))
         ((yas-expand))
-        (t (open-line 1))))
-
-(defvar +yas-temp "")
+        (t
+         (open-line 1))))
 
 (defun +yas-temp-expand ()
   (interactive)
-  (yas-expand-snippet +yas-temp))
-
-(defun +yas-temp-save ()
-  (interactive)
-  (setq +yas-temp (buffer-string))
-  (winner-undo))
+  (let ((snippet (get-register ?s)))
+    (if (stringp snippet)
+        (yas-expand-snippet snippet))))
 
 (defun +yas-temp-edit ()
   (interactive)
   (let ((buffer (or (get-buffer "*yas temp*")
-                    (generate-new-buffer "*yas temp*"))))
+                    (generate-new-buffer "*yas temp*")))
+        (snippet (get-register ?s)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (erase-buffer)
-        (insert +yas-temp)
+        (if (stringp snippet)
+            (insert snippet))
         (text-mode)
-        (local-set-key (kbd "C-c C-c") '+yas-temp-save)))
+        (local-set-key (kbd "C-c C-c")
+                       (lambda ()
+                         (interactive)
+                         (set-register ?s (buffer-string))
+                         (winner-undo)))))
     (switch-to-buffer-other-window buffer)))
-
-(defun +yas-new-snippet ()
-  (interactive)
-  (let ((yas-new-snippet-default (concat yas-new-snippet-default
-                                         +yas-temp)))
-    (yas-new-snippet)))
 
 (defvar +yas-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "i") 'yas-insert-snippet)
     (define-key map (kbd "v") 'yas-visit-snippet-file)
-    (define-key map (kbd "n") '+yas-new-snippet)
+    (define-key map (kbd "n") 'yas-new-snippet)
     (define-key map (kbd "e") '+yas-temp-edit)
     map))
 
@@ -327,12 +323,12 @@
 (defun +completing-read-around
     (func prompt collection &optional predicate require-match
           initial-input hist def inherit-input-method)
-  (if (or (not require-match)
-          (bound-and-true-p ido-cur-list))
+  (if (bound-and-true-p ido-cur-list)
       (funcall func prompt collection predicate require-match
                initial-input hist def inherit-input-method)
     (let ((allcomp (all-completions "" collection predicate)))
-      (ido-completing-read prompt allcomp nil require-match initial-input hist def inherit-input-method))))
+      (ido-completing-read prompt allcomp nil require-match
+                           initial-input hist def inherit-input-method))))
 
 (advice-add 'completing-read :around '+completing-read-around)
 
@@ -369,9 +365,7 @@
                               ("c" "CLIP" entry
                                (file "") "* %^{heading}\n  %u\n  %x" :immediate-finish t)
                               ("r" "REG" entry
-                               (file "") "* %^{heading}\n  %u\n  %i" :immediate-finish t)
-                              ("l" "LOG" item
-                               (file+datetree "logs.org") "    - %?" :unnarrowed t)))
+                               (file "") "* %^{heading}\n  %u\n  %i" :immediate-finish t)))
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
@@ -389,11 +383,13 @@
     (define-key map (kbd "n") 'org-next-link)
     (define-key map (kbd "p") 'org-previous-link)
     (define-key map (kbd "b") 'org-mark-ring-goto)
+    (define-key map (kbd ".") 'org-time-stamp)
+    (define-key map (kbd "!") 'org-time-stamp-inactive)
     (define-key map (kbd "a") 'org-agenda)
     (define-key map (kbd "c") 'org-capture)
     map))
 
-(global-set-key (kbd "C-c l") +org-link-map)
+(global-set-key (kbd "C-x l") +org-link-map)
 
 ;;; prog
 (setq-default display-line-numbers-width 4)
