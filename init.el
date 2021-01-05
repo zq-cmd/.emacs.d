@@ -18,11 +18,11 @@
 (setq package-selected-packages '(zenburn-theme
                                   god-mode
                                   which-key
-                                  wgrep
                                   avy
                                   expand-region
                                   yasnippet
                                   company
+                                  wgrep
                                   pyim
                                   posframe
                                   auctex
@@ -117,6 +117,7 @@
 (define-key universal-argument-map (kbd "u") 'universal-argument-more)
 
 (define-key special-mode-map (kbd "z") '+avy)
+(define-key special-mode-map (kbd ".") 'repeat)
 (define-key special-mode-map (kbd "u") 'universal-argument)
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
@@ -173,7 +174,16 @@
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
-(setq wgrep-auto-save-buffer t)
+(defun rg ()
+  (interactive)
+  (require 'grep)
+  (grep--save-buffers)
+  (compilation-start
+   (read-shell-command "command: " "rg --no-heading " 'grep-history)
+   'grep-mode))
+
+(setq wgrep-auto-save-buffer t
+      wgrep-change-readonly-file t)
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
@@ -182,8 +192,7 @@
 
 (defun +browse-kill-ring ()
   (interactive)
-  (let ((buffer (or (get-buffer "*browse kill ring*")
-                    (generate-new-buffer "*browse kill ring*"))))
+  (let ((buffer (get-buffer-create "*browse kill ring*")))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
         (erase-buffer)
@@ -225,8 +234,7 @@
 
 (defun +yas-temp-edit ()
   (interactive)
-  (let ((buffer (or (get-buffer "*yas temp*")
-                    (generate-new-buffer "*yas temp*")))
+  (let ((buffer (get-buffer-create "*yas temp*"))
         (snippet (get-register ?s)))
     (with-current-buffer buffer
       (let ((inhibit-read-only t))
@@ -312,6 +320,8 @@
 (which-key-enable-god-mode-support)
 
 ;;; ido
+(setq recentf-max-saved-items 100)
+
 (recentf-mode 1)
 
 (setq ido-use-virtual-buffers t)
@@ -337,6 +347,79 @@
     (funcall func)))
 
 (advice-add 'read-extended-command :around '+read-extended-command-around)
+
+;;; fzf
+(defmacro +with-project (arg &rest body)
+  (declare (indent 1))
+  `(let ((default-directory (if ,arg default-directory
+                              (or (cdr-safe (project-current))
+                                  default-directory))))
+     ,@body))
+
+(defvar +fzf-handler)
+
+(defun +fzf-term-handle-exit (process-name msg)
+  (advice-remove 'term-handle-exit '+fzf-term-handle-exit)
+  (let* ((dir default-directory)
+         (lines (split-string (buffer-string) "\n" t "\s*>\s+"))
+         (selected (nth (- (length lines) 2) lines)))
+    (jump-to-register ?f)
+    (kill-buffer "*fzf*")
+    (if (= last-command-event 13)
+        (let ((default-directory dir))
+          (funcall +fzf-handler selected)))))
+
+(defun +fzf-start (cmd handler)
+  (require 'term)
+  (setq +fzf-handler handler)
+  (advice-add 'term-handle-exit :after '+fzf-term-handle-exit)
+  (window-configuration-to-register ?f)
+  (split-window-vertically (- (min 15 (/ (window-height) 2))))
+  (other-window 1)
+  (switch-to-buffer (make-term "fzf" "sh" nil "-c"
+                               (concat cmd "| fzf --print-query --no-hscroll")))
+  (setq-local term-suppress-hard-newline t)
+  (term-char-mode)
+  (setq mode-line-format (format "  fzf: %s" default-directory)))
+
+(defun +fzf-find (&optional arg)
+  (interactive "P")
+  (+with-project arg
+    (+fzf-start "rg --files" '+fzf-find-handler)))
+
+(defun +fzf-find-handler (selected)
+  (let ((file (expand-file-name (car (split-string selected ":")))))
+    (find-file file)))
+
+(defun +fzf-grep (&optional arg)
+  (interactive "P")
+  (+with-project arg
+    (+fzf-start
+     (read-shell-command "command: "
+                         "rg --no-heading --line-number "
+                         'grep-history)
+     '+fzf-grep-handler)))
+
+(defun +fzf-grep-handler (selected)
+  (let* ((selected (split-string selected ":"))
+         (file (expand-file-name (car selected)))
+         (line (nth 1 selected)))
+    (when (file-exists-p file)
+      (find-file file)
+      (if line (goto-line (string-to-number line))))))
+
+(defun +fzf-occur ()
+  (interactive)
+  (if buffer-file-name
+      (+fzf-start (concat "cat -n " buffer-file-name) '+fzf-occur-handler)))
+
+(defun +fzf-occur-handler (selected)
+  (let ((line (car (split-string selected))))
+    (goto-line (string-to-number line))))
+
+(global-set-key (kbd "C-S-p") '+fzf-find)
+(global-set-key (kbd "C-S-n") '+fzf-grep)
+(global-set-key (kbd "C-S-s") '+fzf-occur)
 
 ;;; org
 (setq org-modules '(org-tempo ol-eshell)
