@@ -174,14 +174,40 @@
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
+(setq ibuffer-show-empty-filter-groups nil
+      ibuffer-saved-filter-groups
+      '(("default"
+         ("exist" (or (exist)
+                      (mode . dired-mode)))
+         ("shell" (or (mode . shell-mode)
+                      (mode . eshell-mode)
+                      (mode . term-char-mode)
+                      (mode . term-line-mode)
+                      (mode . inferior-python-mode))))))
+
+(add-hook 'ibuffer-mode-hook
+          (lambda () (ibuffer-switch-to-saved-filter-groups "default")))
+
+(with-eval-after-load 'ibuf-ext
+  (define-ibuffer-filter exist
+      "buffers exist"
+    (:description "exist")
+    (with-current-buffer buf
+      buffer-file-name))
+  (define-ibuffer-filter project
+      "buffers in project"
+    (:description "project" :reader (project-prompt-project-dir))
+    (with-current-buffer buf
+      (file-in-directory-p default-directory qualifier))))
+
 (defun +project-ibuffer ()
   (interactive)
-  (let ((project (cdr (project-current t))))
+  (let ((project (project-root (project-current t))))
     (ibuffer nil (format "*ibuffer %s*" project)
-             (list (cons 'directory
-                         (regexp-quote (expand-file-name project)))))))
+             (list (cons 'project project)))))
 
 (define-key project-prefix-map (kbd "l") '+project-ibuffer)
+(define-key project-prefix-map (kbd "L") 'ibuffer-filter-by-project)
 
 (add-to-list 'project-switch-commands '(+project-ibuffer "Ibuffer"))
 
@@ -374,38 +400,6 @@
     (funcall func)))
 
 (advice-add 'read-extended-command :around '+read-extended-command-around)
-
-;;; fzf
-(defun +fzf-term-handle-exit (process-name msg)
-  (advice-remove 'term-handle-exit '+fzf-term-handle-exit)
-  (let* ((lines (split-string (buffer-string) "\n" t "\s*>\s+"))
-         (file (expand-file-name (nth (- (length lines) 2) lines))))
-    (jump-to-register ?f)
-    (kill-buffer "*fzf*")
-    (if (= last-command-event 13)
-        (find-file file))))
-
-(defun +fzf (&optional arg)
-  (interactive "P")
-  (require 'term)
-  (let ((default-directory (if arg
-                               (ido-read-directory-name "directory: ")
-                             (cdr (project-current t)))))
-    (advice-add 'term-handle-exit :after '+fzf-term-handle-exit)
-    (window-configuration-to-register ?f)
-    (split-window-vertically (- (min 15 (/ (window-height) 2))))
-    (other-window 1)
-    (switch-to-buffer
-     (make-term
-      "fzf" "sh" nil "-c"
-      "rg --files | fzf --print-query --margin=1 --color=bw"))
-    (setq-local term-suppress-hard-newline t)
-    (term-char-mode)
-    (setq mode-line-format (format "  fzf: %s" default-directory))))
-
-(define-key project-prefix-map (kbd "z") '+fzf)
-
-(add-to-list 'project-switch-commands '(+fzf "Fzf"))
 
 ;;; org
 (setq org-modules '(org-tempo ol-eshell)
