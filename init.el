@@ -135,27 +135,12 @@
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
       tramp-completion-use-auth-sources nil
-      bookmark-default-file "~/.emacs.d/rsync/bookmarks"
-      eshell-aliases-file "~/.emacs.d/rsync/alias"
-      eshell-modules-list
-      '(eshell-alias
-        eshell-basic
-        eshell-cmpl
-        eshell-dirs
-        eshell-glob
-        eshell-hist
-        eshell-ls
-        eshell-pred
-        eshell-prompt
-        eshell-script
-        eshell-term
-        eshell-tramp
-        eshell-unix)
-      eshell-cd-on-directory nil)
+      bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
 (auto-save-visited-mode 1)
 
 (global-set-key (kbd "C-x w") 'find-file-at-point)
+(define-key ctl-x-4-map (kbd "w") 'ffap-other-window)
 
 (global-set-key (kbd "C-x d") 'find-dired)
 (global-set-key (kbd "C-x C-d") 'dired)
@@ -177,8 +162,7 @@
 (setq ibuffer-show-empty-filter-groups nil
       ibuffer-saved-filter-groups
       '(("default"
-         ("exist" (or (exist)
-                      (mode . dired-mode)))
+         ("exist" (not (name . "\\`[ *]")))
          ("shell" (or (mode . shell-mode)
                       (mode . eshell-mode)
                       (mode . term-char-mode)
@@ -188,26 +172,14 @@
 (add-hook 'ibuffer-mode-hook
           (lambda () (ibuffer-switch-to-saved-filter-groups "default")))
 
-(with-eval-after-load 'ibuf-ext
-  (define-ibuffer-filter exist
-      "buffers exist"
-    (:description "exist")
-    (with-current-buffer buf
-      buffer-file-name))
-  (define-ibuffer-filter project
-      "buffers in project"
-    (:description "project" :reader (project-prompt-project-dir))
-    (with-current-buffer buf
-      (file-in-directory-p default-directory qualifier))))
-
 (defun +project-ibuffer ()
   (interactive)
+  (require 'project)
   (let ((project (project-root (project-current t))))
     (ibuffer nil (format "*ibuffer %s*" project)
-             (list (cons 'project project)))))
+             `((predicate . (file-in-directory-p default-directory ,project))))))
 
 (define-key project-prefix-map (kbd "l") '+project-ibuffer)
-(define-key project-prefix-map (kbd "L") 'ibuffer-filter-by-project)
 
 (add-to-list 'project-switch-commands '(+project-ibuffer "Ibuffer"))
 
@@ -226,6 +198,23 @@
       ediff-split-window-function 'split-window-horizontally)
 
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
+
+(setq eshell-modules-list
+      '(eshell-alias
+        eshell-basic
+        eshell-cmpl
+        eshell-dirs
+        eshell-glob
+        eshell-hist
+        eshell-ls
+        eshell-pred
+        eshell-prompt
+        eshell-script
+        eshell-term
+        eshell-tramp
+        eshell-unix)
+      eshell-cd-on-directory nil
+      eshell-aliases-file "~/.emacs.d/rsync/alias")
 
 (defun +eshell-history ()
   (interactive)
