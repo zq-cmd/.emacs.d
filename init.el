@@ -190,6 +190,23 @@
 
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 
+(defun +eshell-history ()
+  (interactive)
+  (let* ((ido-enable-flex-matching t)
+         (ido-separator "\n")
+         (cmd (completing-read "history: "
+                               (ring-elements eshell-history-ring))))
+    (eshell-kill-input)
+    (insert cmd)))
+
+(with-eval-after-load 'em-hist
+  (define-key eshell-hist-mode-map (kbd "M-s") nil)
+  (define-key eshell-hist-mode-map (kbd "M-r") '+eshell-history))
+
+(add-hook 'eshell-mode-hook 'outline-minor-mode)
+
+(+setq-hook 'eshell-mode-hook outline-regexp eshell-prompt-regexp)
+
 (defun +browse-kill-ring ()
   (interactive)
   (let ((buffer (get-buffer-create "*browse kill ring*")))
@@ -403,10 +420,9 @@
 (defun +fzf-grep-handler (selected)
   (let* ((selected (split-string selected ":"))
          (file (expand-file-name (car selected)))
-         (line (nth 1 selected)))
-    (when (file-exists-p file)
-      (find-file file)
-      (if line (goto-line (string-to-number line))))))
+         (line (cadr selected)))
+    (find-file file)
+    (goto-line (string-to-number line))))
 
 (defun +fzf-occur ()
   (interactive)
@@ -451,7 +467,8 @@
                                (file "") "* %^{heading}\n  %u\n  %i" :immediate-finish t)))
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
+  (define-key org-mode-map (kbd "M-s M-o") '+outline-occur))
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
@@ -487,6 +504,10 @@
   (add-hook 'prog-mode-hook mode)
   (setcdr (assq mode minor-mode-alist) '("")))
 
+(defun +outline-occur ()
+  (interactive)
+  (occur outline-regexp))
+
 (define-key prog-mode-map (kbd "C-c C-j") 'imenu)
 (define-key prog-mode-map (kbd "C-c C-u") 'outline-up-heading)
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
@@ -495,10 +516,17 @@
 (define-key prog-mode-map (kbd "C-c C-b") 'outline-backward-same-level)
 (define-key prog-mode-map (kbd "C-c C-i")
   (+menu-if (outline-on-heading-p) 'outline-toggle-children 'hs-toggle-hiding))
-(define-key prog-mode-map (kbd "M-<up>")
+(define-key outline-minor-mode-map (kbd "<tab>")
+  (+menu-if (outline-on-heading-p) 'outline-cycle))
+(define-key outline-minor-mode-map (kbd "<backtab>")
+  (+menu-if (outline-on-heading-p) 'outline-cycle-buffer))
+(define-key outline-minor-mode-map (kbd "M-<up>")
   (+menu-if (outline-on-heading-p) 'outline-move-subtree-up))
-(define-key prog-mode-map (kbd "M-<down>")
+(define-key outline-minor-mode-map (kbd "M-<down>")
   (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
+(define-key outline-minor-mode-map (kbd "M-h")
+  (+menu-if (outline-on-heading-p) 'outline-mark-subtree))
+(define-key outline-minor-mode-map (kbd "M-s M-o") '+outline-occur)
 
 ;;; elisp
 (+setq-hook 'emacs-lisp-mode-hook
