@@ -174,6 +174,17 @@
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
+(defun +project-ibuffer ()
+  (interactive)
+  (let ((project (cdr (project-current t))))
+    (ibuffer nil (format "*ibuffer %s*" project)
+             (list (cons 'directory
+                         (regexp-quote (expand-file-name project)))))))
+
+(define-key project-prefix-map (kbd "l") '+project-ibuffer)
+
+(add-to-list 'project-switch-commands '(+project-ibuffer "Ibuffer"))
+
 (defun rg ()
   (interactive)
   (require 'grep)
@@ -193,7 +204,6 @@
 (defun +eshell-history ()
   (interactive)
   (let* ((ido-enable-flex-matching t)
-         (ido-separator "\n")
          (cmd (completing-read "history: "
                                (ring-elements eshell-history-ring))))
     (eshell-kill-input)
@@ -366,76 +376,36 @@
 (advice-add 'read-extended-command :around '+read-extended-command-around)
 
 ;;; fzf
-(defmacro +with-project (arg &rest body)
-  (declare (indent 1))
-  `(let ((default-directory (if ,arg default-directory
-                              (or (cdr-safe (project-current))
-                                  default-directory))))
-     ,@body))
-
-(defvar +fzf-handler)
-
 (defun +fzf-term-handle-exit (process-name msg)
   (advice-remove 'term-handle-exit '+fzf-term-handle-exit)
-  (let* ((dir default-directory)
-         (lines (split-string (buffer-string) "\n" t "\s*>\s+"))
-         (selected (nth (- (length lines) 2) lines)))
+  (let* ((lines (split-string (buffer-string) "\n" t "\s*>\s+"))
+         (file (expand-file-name (nth (- (length lines) 2) lines))))
     (jump-to-register ?f)
     (kill-buffer "*fzf*")
     (if (= last-command-event 13)
-        (let ((default-directory dir))
-          (funcall +fzf-handler selected)))))
+        (find-file file))))
 
-(defun +fzf-start (cmd handler)
+(defun +fzf (&optional arg)
+  (interactive "P")
   (require 'term)
-  (setq +fzf-handler handler)
-  (advice-add 'term-handle-exit :after '+fzf-term-handle-exit)
-  (window-configuration-to-register ?f)
-  (split-window-vertically (- (min 15 (/ (window-height) 2))))
-  (other-window 1)
-  (switch-to-buffer (make-term "fzf" "sh" nil "-c"
-                               (concat cmd "| fzf --print-query --no-hscroll")))
-  (setq-local term-suppress-hard-newline t)
-  (term-char-mode)
-  (setq mode-line-format (format "  fzf: %s" default-directory)))
+  (let ((default-directory (if arg
+                               (ido-read-directory-name "directory: ")
+                             (cdr (project-current t)))))
+    (advice-add 'term-handle-exit :after '+fzf-term-handle-exit)
+    (window-configuration-to-register ?f)
+    (split-window-vertically (- (min 15 (/ (window-height) 2))))
+    (other-window 1)
+    (switch-to-buffer
+     (make-term
+      "fzf" "sh" nil "-c"
+      "rg --files | fzf --print-query --margin=1 --color=bw"))
+    (setq-local term-suppress-hard-newline t)
+    (term-char-mode)
+    (setq mode-line-format (format "  fzf: %s" default-directory))))
 
-(defun +fzf-find (&optional arg)
-  (interactive "P")
-  (+with-project arg
-    (+fzf-start "rg --files" '+fzf-find-handler)))
+(define-key project-prefix-map (kbd "z") '+fzf)
 
-(defun +fzf-find-handler (selected)
-  (let ((file (expand-file-name (car (split-string selected ":")))))
-    (find-file file)))
-
-(defun +fzf-grep (&optional arg)
-  (interactive "P")
-  (+with-project arg
-    (+fzf-start
-     (read-shell-command "command: "
-                         "rg --no-heading --line-number "
-                         'grep-history)
-     '+fzf-grep-handler)))
-
-(defun +fzf-grep-handler (selected)
-  (let* ((selected (split-string selected ":"))
-         (file (expand-file-name (car selected)))
-         (line (cadr selected)))
-    (find-file file)
-    (goto-line (string-to-number line))))
-
-(defun +fzf-occur ()
-  (interactive)
-  (if buffer-file-name
-      (+fzf-start (concat "cat -n " buffer-file-name) '+fzf-occur-handler)))
-
-(defun +fzf-occur-handler (selected)
-  (let ((line (car (split-string selected))))
-    (goto-line (string-to-number line))))
-
-(global-set-key (kbd "C-S-p") '+fzf-find)
-(global-set-key (kbd "C-S-n") '+fzf-grep)
-(global-set-key (kbd "C-S-s") '+fzf-occur)
+(add-to-list 'project-switch-commands '(+fzf "Fzf"))
 
 ;;; org
 (setq org-modules '(org-tempo ol-eshell)
@@ -467,8 +437,7 @@
                                (file "") "* %^{heading}\n  %u\n  %i" :immediate-finish t)))
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
-  (define-key org-mode-map (kbd "M-s M-o") '+outline-occur))
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
 
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
@@ -508,6 +477,8 @@
   (interactive)
   (occur outline-regexp))
 
+(global-set-key (kbd "M-s M-o") '+outline-occur)
+
 (define-key prog-mode-map (kbd "C-c C-j") 'imenu)
 (define-key prog-mode-map (kbd "C-c C-u") 'outline-up-heading)
 (define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
@@ -524,9 +495,8 @@
   (+menu-if (outline-on-heading-p) 'outline-move-subtree-up))
 (define-key outline-minor-mode-map (kbd "M-<down>")
   (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
-(define-key outline-minor-mode-map (kbd "M-h")
+(define-key outline-minor-mode-map (kbd "C-M-h")
   (+menu-if (outline-on-heading-p) 'outline-mark-subtree))
-(define-key outline-minor-mode-map (kbd "M-s M-o") '+outline-occur)
 
 ;;; elisp
 (+setq-hook 'emacs-lisp-mode-hook
