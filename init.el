@@ -15,8 +15,7 @@
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
-(setq package-selected-packages '(zenburn-theme
-                                  god-mode
+(setq package-selected-packages '(god-mode
                                   which-key
                                   avy
                                   expand-region
@@ -34,7 +33,7 @@
 
 (require 'package)
 
-(unless (package-installed-p 'zenburn-theme)
+(unless (package-installed-p 'god-mode)
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
@@ -108,7 +107,7 @@
                (pyim-cregexp-build char)
              (regexp-quote (string char))))))))))
 
-(load-theme 'zenburn t)
+(load-theme 'deeper-blue)
 
 ;;; tool
 (global-set-key (kbd "C-.") 'repeat)
@@ -131,6 +130,7 @@
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 (setq confirm-kill-emacs 'y-or-n-p
+      disabled-command-function 'ignore
       vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
