@@ -1,5 +1,6 @@
 ;;; -*- lexical-binding: t -*-
-;;; package
+;;; init
+;;;; package
 (defmacro +menu-item (&rest body)
   `'(menu-item "" nil :filter (lambda (&optional _) ,@body)))
 
@@ -38,7 +39,8 @@
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
 
-;;; ui
+;;;; ui
+(tooltip-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -47,6 +49,13 @@
 (setq visible-bell t)
 
 (setq inhibit-splash-screen t)
+
+(global-set-key (kbd "<f2>") 'tmm-menubar)
+(global-set-key (kbd "<f10>") 'toggle-frame-maximized)
+
+(load-theme 'deeper-blue)
+
+;;;; pair
 
 (setq-default indent-tabs-mode nil)
 
@@ -58,9 +67,7 @@
 
 (global-set-key (kbd "C-=") 'er/expand-region)
 
-(global-set-key (kbd "<f2>") 'tmm-menubar)
-(global-set-key (kbd "<f10>") 'toggle-frame-maximized)
-
+;;;; window
 (winner-mode 1)
 
 (global-set-key (kbd "M-o") 'other-window)
@@ -79,6 +86,7 @@
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
+;;;; avy
 (setq avy-background t
       avy-single-candidate-jump nil
       avy-goto-word-0-regexp "\\_<\\(\\sw\\|\\s_\\)")
@@ -107,9 +115,8 @@
                (pyim-cregexp-build char)
              (regexp-quote (string char))))))))))
 
-(load-theme 'deeper-blue)
-
 ;;; tool
+;;;; keybinds
 (global-set-key (kbd "C-.") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
 
@@ -130,7 +137,7 @@
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 (setq confirm-kill-emacs 'y-or-n-p
-      disabled-command-function 'ignore
+      disabled-command-function nil
       vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
@@ -148,6 +155,7 @@
 (global-set-key (kbd "C-x b") 'ibuffer)
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
+;;;; dired
 (setq dired-listing-switches "-alh")
 
 (defun +dired-do-xdg-open ()
@@ -159,14 +167,14 @@
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
+;;;; ibuffer
 (setq ibuffer-show-empty-filter-groups nil
       ibuffer-saved-filter-groups
       '(("default"
          ("exist" (not (name . "\\`[ *]")))
-         ("shell" (or (mode . shell-mode)
+         ("shell" (or (mode . term-mode)
+                      (mode . shell-mode)
                       (mode . eshell-mode)
-                      (mode . term-char-mode)
-                      (mode . term-line-mode)
                       (mode . inferior-python-mode))))))
 
 (add-hook 'ibuffer-mode-hook
@@ -183,6 +191,7 @@
 
 (add-to-list 'project-switch-commands '(+project-ibuffer "Ibuffer"))
 
+;;;; grep
 (defun rg ()
   (interactive)
   (require 'grep)
@@ -194,11 +203,13 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
+;;;; ediff
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
 
 (add-hook 'ediff-after-quit-hook-internal 'winner-undo)
 
+;;;; eshell
 (setq eshell-modules-list
       '(eshell-alias
         eshell-basic
@@ -232,6 +243,7 @@
 
 (+setq-hook 'eshell-mode-hook outline-regexp eshell-prompt-regexp)
 
+;;;; killring
 (defun +browse-kill-ring ()
   (interactive)
   (let ((buffer (get-buffer-create "*browse kill ring*")))
@@ -250,6 +262,7 @@
 
 (setcdr (assq 'eldoc-mode minor-mode-alist) '(""))
 
+;;;; yasnippet
 (setq abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
       yas-snippet-dirs '("~/.emacs.d/rsync/snippets")
       yas-alias-to-yas/prefix-p nil
@@ -303,6 +316,7 @@
 (global-set-key (kbd "C-o") '+yas-expand)
 (global-set-key (kbd "C-S-o") '+yas-temp-expand)
 
+;;;; company
 (setq completion-styles '(basic)
       dabbrev-case-replace nil
       dabbrev-case-distinction nil
@@ -322,7 +336,7 @@
 
 (setcdr (assq 'company-mode minor-mode-alist) '(""))
 
-;;; god
+;;;; god
 (setq god-mode-enable-function-key-translation nil
       god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-")))
 
@@ -361,7 +375,7 @@
 
 (which-key-enable-god-mode-support)
 
-;;; ido
+;;;; ido
 (setq recentf-max-saved-items 100)
 
 (recentf-mode 1)
@@ -390,9 +404,61 @@
 
 (advice-add 'read-extended-command :around '+read-extended-command-around)
 
-;;; org
+;;; prog
+;;;; outline
+(setq-default display-line-numbers-width 4)
+
+(add-hook 'prog-mode-hook 'display-line-numbers-mode)
+
+(require 'outline)
+(require 'hideshow)
+
+(dolist (mode '(hs-minor-mode
+                outline-minor-mode))
+  (add-hook 'prog-mode-hook mode)
+  (setcdr (assq mode minor-mode-alist) '("")))
+
+(defun +narrow-to-subtree ()
+  (interactive)
+  (save-excursion
+    (outline-mark-subtree)
+    (narrow-to-region (region-beginning) (region-end))
+    (deactivate-mark)))
+
+(define-key narrow-map (kbd "t") '+narrow-to-subtree)
+
+(defun +outline-occur ()
+  (interactive)
+  (occur outline-regexp))
+
+(define-key search-map (kbd "M-o") '+outline-occur)
+
+(define-key prog-mode-map (kbd "C-c C-j") 'imenu)
+(define-key prog-mode-map (kbd "C-c C-u") 'outline-up-heading)
+(define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
+(define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
+(define-key prog-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
+(define-key prog-mode-map (kbd "C-c C-b") 'outline-backward-same-level)
+(define-key prog-mode-map (kbd "C-c C-i")
+  (+menu-if (outline-on-heading-p) 'outline-toggle-children 'hs-toggle-hiding))
+(define-key outline-minor-mode-map (kbd "<tab>")
+  (+menu-if (outline-on-heading-p) 'outline-cycle))
+(define-key outline-minor-mode-map (kbd "<backtab>")
+  (+menu-if (outline-on-heading-p) 'outline-cycle-buffer))
+(define-key outline-minor-mode-map (kbd "M-<up>")
+  (+menu-if (outline-on-heading-p) 'outline-move-subtree-up))
+(define-key outline-minor-mode-map (kbd "M-<down>")
+  (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
+(define-key outline-minor-mode-map (kbd "M-<left>")
+  (+menu-if (outline-on-heading-p) 'outline-demote))
+(define-key outline-minor-mode-map (kbd "M-<right>")
+  (+menu-if (outline-on-heading-p) 'outline-promote))
+(define-key outline-minor-mode-map (kbd "C-M-h")
+  (+menu-if (outline-on-heading-p) 'outline-mark-subtree))
+
+;;;; org
 (setq org-modules '(org-tempo ol-eshell)
-      org-export-backends '(html)
+      org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
@@ -443,50 +509,12 @@
 
 (global-set-key (kbd "C-x l") +org-link-map)
 
-;;; prog
-(setq-default display-line-numbers-width 4)
-
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-
-(require 'outline)
-(require 'hideshow)
-
-(dolist (mode '(hs-minor-mode
-                outline-minor-mode))
-  (add-hook 'prog-mode-hook mode)
-  (setcdr (assq mode minor-mode-alist) '("")))
-
-(defun +outline-occur ()
-  (interactive)
-  (occur outline-regexp))
-
-(global-set-key (kbd "M-s M-o") '+outline-occur)
-
-(define-key prog-mode-map (kbd "C-c C-j") 'imenu)
-(define-key prog-mode-map (kbd "C-c C-u") 'outline-up-heading)
-(define-key prog-mode-map (kbd "C-c C-n") 'outline-next-heading)
-(define-key prog-mode-map (kbd "C-c C-p") 'outline-previous-heading)
-(define-key prog-mode-map (kbd "C-c C-f") 'outline-forward-same-level)
-(define-key prog-mode-map (kbd "C-c C-b") 'outline-backward-same-level)
-(define-key prog-mode-map (kbd "C-c C-i")
-  (+menu-if (outline-on-heading-p) 'outline-toggle-children 'hs-toggle-hiding))
-(define-key outline-minor-mode-map (kbd "<tab>")
-  (+menu-if (outline-on-heading-p) 'outline-cycle))
-(define-key outline-minor-mode-map (kbd "<backtab>")
-  (+menu-if (outline-on-heading-p) 'outline-cycle-buffer))
-(define-key outline-minor-mode-map (kbd "M-<up>")
-  (+menu-if (outline-on-heading-p) 'outline-move-subtree-up))
-(define-key outline-minor-mode-map (kbd "M-<down>")
-  (+menu-if (outline-on-heading-p) 'outline-move-subtree-down))
-(define-key outline-minor-mode-map (kbd "C-M-h")
-  (+menu-if (outline-on-heading-p) 'outline-mark-subtree))
-
-;;; elisp
+;;;; elisp
 (+setq-hook 'emacs-lisp-mode-hook
             outline-regexp ";;[;\^L]+ "
             company-backends '(company-capf company-files company-dabbrev-code company-dabbrev))
 
-;;; python
+;;;; python
 (setq python-indent-guess-indent-offset nil
       python-shell-interpreter "python3"
       org-babel-python-command "python3")
@@ -502,7 +530,7 @@
   (with-eval-after-load 'org
     (require 'ob-python)))
 
-;;; pdf
+;;;; pdf
 (with-eval-after-load 'pdf-tools
   (pdf-tools-install))
 
@@ -511,6 +539,7 @@
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 
 ;;; cn
+;;;; scale
 (defvar +text-scale-list
   [(9.0  . 9.0)
    (10.0 . 10.5)
@@ -551,6 +580,7 @@
 (global-set-key (kbd "C-+") '+text-scale-increase)
 (global-set-key (kbd "C-_") '+text-scale-decrease)
 
+;;;; pyim
 (setq default-input-method "pyim"
       posframe-mouse-banish nil
       pyim-page-tooltip 'posframe
@@ -568,8 +598,9 @@
             '(+pyim-probe-god-mode-p
               org-inside-LaTeX-fragment-p))
 
+(advice-add 'pyim-punctuation-full-width-p :override 'ignore)
+
 (with-eval-after-load 'pyim
-  (defun pyim-punctuation-full-width-p ())
   (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
   (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
   (pyim-scheme-add
