@@ -54,7 +54,8 @@
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
-(load-theme 'deeper-blue)
+(if (display-graphic-p)
+    (load-theme 'deeper-blue))
 
 
 (require 'page-ext)
@@ -82,6 +83,11 @@
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
+(global-set-key (kbd "C-x b") 'list-buffers)
+(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
+
+(global-set-key (kbd "C-x C-a") 'find-file-at-point)
+
 
 (setq-default indent-tabs-mode nil)
 
@@ -102,6 +108,7 @@
       avy-goto-word-0-regexp "\\_<\\(\\sw\\|\\s_\\)")
 
 (global-set-key (kbd "C-z") '+avy)
+(global-set-key (kbd "M-z") '+avy)
 (define-key isearch-mode-map (kbd "C-z") 'avy-isearch)
 
 (defun +avy (&optional arg)
@@ -151,19 +158,9 @@
       vc-handled-backends '(Git)
       vc-make-backup-files t
       backup-directory-alist '(("." . "~/.bak"))
-      tramp-completion-use-auth-sources nil
       bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
 (auto-save-visited-mode 1)
-
-(global-set-key (kbd "C-x w") 'find-file-at-point)
-(define-key ctl-x-4-map (kbd "w") 'ffap-other-window)
-
-(global-set-key (kbd "C-x d") 'find-dired)
-(global-set-key (kbd "C-x C-d") 'dired)
-
-(global-set-key (kbd "C-x b") 'ibuffer)
-(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 
 (setq dired-listing-switches "-alh")
@@ -176,32 +173,6 @@
 
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
-
-
-(setq ibuffer-show-empty-filter-groups nil
-      ibuffer-saved-filter-groups
-      '(("default"
-         ("exist" (not (name . "\\`[ *]")))
-         ("shell" (or (mode . term-mode)
-                      (mode . shell-mode)
-                      (mode . eshell-mode)
-                      (mode . inferior-python-mode))))))
-
-(add-hook 'ibuffer-mode-hook
-          (lambda ()
-            (ibuffer-switch-to-saved-filter-groups "default")))
-
-(defun +project-ibuffer ()
-  (interactive)
-  (require 'project)
-  (let ((project (project-root (project-current t))))
-    (ibuffer nil (format "*ibuffer %s*" project)
-             `((predicate . (file-in-directory-p default-directory
-                                                 ,project))))))
-
-(define-key project-prefix-map (kbd "l") '+project-ibuffer)
-
-(add-to-list 'project-switch-commands '(+project-ibuffer "Ibuffer"))
 
 
 (defun rg ()
