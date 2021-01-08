@@ -1,16 +1,6 @@
 ;;; -*- lexical-binding: t -*-
 
 
-(defmacro +menu-item (&rest body)
-  `'(menu-item "" nil :filter (lambda (&optional _) ,@body)))
-
-(defmacro +menu-if (&rest body)
-  `(+menu-item (if ,@body)))
-
-(defmacro +setq-hook (hook &rest body)
-  `(add-hook ,hook (lambda () (setq-local ,@body))))
-
-
 (setq custom-file "~/.emacs.d/custom.el")
 
 (setq package-archives
@@ -294,9 +284,10 @@
 (define-key prog-mode-map (kbd "C-c C-i") 'hs-toggle-hiding)
 
 
-(+setq-hook 'emacs-lisp-mode-hook
-            company-backends
-            '(company-capf company-files company-dabbrev-code company-dabbrev))
+(add-hook 'emacs-lisp-mode-hook
+          (lambda ()
+            (setq-local company-backends
+                        '(company-capf company-files company-dabbrev))))
 
 
 (setq python-indent-guess-indent-offset nil
@@ -383,10 +374,10 @@
 
 (setq-default pyim-english-input-switch-functions '(+pyim-probe-god-mode-p))
 
-(+setq-hook 'org-mode-hook
-            pyim-english-input-switch-functions
-            '(+pyim-probe-god-mode-p
-              org-inside-LaTeX-fragment-p))
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq pyim-english-input-switch-functions
+                  '(+pyim-probe-god-mode-p org-inside-LaTeX-fragment-p))))
 
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 
