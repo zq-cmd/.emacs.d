@@ -8,14 +8,15 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(god-mode
+                                  which-key
                                   yasnippet
                                   company
+                                  eglot
                                   wgrep
                                   pyim
                                   posframe
                                   htmlize
-                                  pdf-tools
-                                  eglot))
+                                  pdf-tools))
 
 (require 'package)
 
@@ -102,6 +103,7 @@
       disabled-command-function nil
       vc-handled-backends '(Git)
       vc-make-backup-files t
+      version-control 'never
       backup-directory-alist '(("." . "~/.bak"))
       bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
@@ -160,7 +162,8 @@
 (global-set-key (kbd "C-S-o") 'open-line)
 
 
-(setq completion-styles '(basic)
+(setq isearch-lazy-count t
+      completion-styles '(basic)
       dabbrev-case-replace nil
       dabbrev-case-distinction nil
       dabbrev-case-fold-search nil)
@@ -208,6 +211,24 @@
 (god-mode-all)
 
 (add-hook 'god-local-mode-hook 'company-abort)
+
+
+(defun +wk-prefix-then-des-order (acons bcons)
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (xor apref? bpref?)
+        apref?
+      (which-key-description-order acons bcons))))
+
+(setq which-key-lighter nil
+      which-key-show-early-on-C-h t
+      which-key-add-column-padding 2
+      which-key-idle-secondary-delay 0
+      which-key-sort-order '+wk-prefix-then-des-order)
+
+(which-key-mode 1)
+
+(which-key-enable-god-mode-support)
 
 
 (setq recentf-max-saved-items 100)
