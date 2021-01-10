@@ -69,6 +69,91 @@
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 
+(setq isearch-lazy-count t)
+
+(defun +search-forward ()
+  (interactive)
+  (if isearch-regexp
+      (search-forward isearch-string)
+    (re-search-forward isearch-string)))
+
+(defun +search-backward ()
+  (interactive)
+  (if isearch-regexp
+      (search-backward isearch-string)
+    (re-search-backward isearch-string)))
+
+(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "C-.") '+search-forward)
+(global-set-key (kbd "C-,") '+search-backward)
+
+(define-key special-mode-map (kbd "u") 'universal-argument)
+(define-key universal-argument-map (kbd "u") 'universal-argument-more)
+
+(define-key special-mode-map (kbd "z") 'repeat)
+(define-key special-mode-map (kbd "n") 'next-line)
+(define-key special-mode-map (kbd "p") 'previous-line)
+(define-key special-mode-map (kbd "f") 'forward-char)
+(define-key special-mode-map (kbd "b") 'backward-char)
+(define-key special-mode-map (kbd "a") 'move-beginning-of-line)
+(define-key special-mode-map (kbd "e") 'move-end-of-line)
+(define-key special-mode-map (kbd "s") 'isearch-forward)
+(define-key special-mode-map (kbd "r") 'isearch-backward)
+(define-key special-mode-map (kbd ".") '+search-forward)
+(define-key special-mode-map (kbd ",") '+search-backward)
+(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
+(define-key special-mode-map (kbd "c") 'god-mode-self-insert)
+
+
+(setq god-mode-enable-function-key-translation nil
+      god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
+
+(require 'god-mode)
+(require 'god-mode-isearch)
+
+(global-set-key (kbd "<escape>") 'god-local-mode)
+(global-set-key (kbd "C-x g") 'god-local-mode)
+
+;; god mode remap self-insert-command
+(defun +self-insert-command () (interactive) (self-insert-command 1))
+
+;; surround region in god mode
+(dolist (key '("(" ")" "[" "]" "{" "}" "`" "'" "\""))
+  (define-key god-local-mode-map (kbd key) '+self-insert-command))
+
+(define-key god-local-mode-map (kbd "q") 'quit-window)
+(define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
+(define-key god-local-mode-map (kbd ">") 'end-of-buffer)
+(define-key god-local-mode-map (kbd "SPC") 'scroll-up-command)
+(define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
+
+(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
+(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
+
+(god-mode-all)
+
+(add-hook 'god-local-mode-hook 'company-abort)
+
+
+(defun +wk-prefix-then-des-order (acons bcons)
+  (let ((apref? (which-key--group-p (cdr acons)))
+        (bpref? (which-key--group-p (cdr bcons))))
+    (if (xor apref? bpref?)
+        apref?
+      (which-key-description-order acons bcons))))
+
+(setq which-key-lighter nil
+      which-key-show-early-on-C-h t
+      which-key-add-column-padding 2
+      which-key-idle-secondary-delay 0
+      which-key-sort-order '+wk-prefix-then-des-order)
+
+(which-key-mode 1)
+
+(which-key-enable-god-mode-support)
+
+
 (setq-default indent-tabs-mode nil)
 
 (show-paren-mode 1)
@@ -78,25 +163,6 @@
 (global-set-key (kbd "C-S-d") 'delete-pair)
 
 (global-set-key (kbd "M-Z") 'zap-up-to-char)
-
-
-(global-set-key (kbd "C-.") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
-
-(define-key special-mode-map (kbd "u") 'universal-argument)
-(define-key universal-argument-map (kbd "u") 'universal-argument-more)
-
-(define-key special-mode-map (kbd ".") 'repeat)
-(define-key special-mode-map (kbd "n") 'next-line)
-(define-key special-mode-map (kbd "p") 'previous-line)
-(define-key special-mode-map (kbd "f") 'forward-char)
-(define-key special-mode-map (kbd "b") 'backward-char)
-(define-key special-mode-map (kbd "a") 'move-beginning-of-line)
-(define-key special-mode-map (kbd "e") 'move-end-of-line)
-(define-key special-mode-map (kbd "s") 'isearch-forward)
-(define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
-(define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -162,8 +228,7 @@
 (global-set-key (kbd "C-S-o") 'open-line)
 
 
-(setq isearch-lazy-count t
-      completion-styles '(basic)
+(setq completion-styles '(basic)
       dabbrev-case-replace nil
       dabbrev-case-distinction nil
       dabbrev-case-fold-search nil)
@@ -181,54 +246,6 @@
 (global-company-mode 1)
 
 (setcdr (assq 'company-mode minor-mode-alist) '(""))
-
-
-(setq god-mode-enable-function-key-translation nil
-      god-mode-alist '((nil . "C-") ("g" . "M-") ("," . "C-M-")))
-
-(require 'god-mode)
-(require 'god-mode-isearch)
-
-(global-set-key (kbd "C-z") 'god-local-mode)
-(global-set-key (kbd "<escape>") 'god-local-mode)
-
-;; god mode remap self-insert-command
-(defun +self-insert-command () (interactive) (self-insert-command 1))
-
-;; surround region in god mode
-(dolist (key '("(" ")" "[" "]" "{" "}" "`" "'" "\""))
-  (define-key god-local-mode-map (kbd key) '+self-insert-command))
-
-(define-key god-local-mode-map (kbd "q") 'quit-window)
-(define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
-(define-key god-local-mode-map (kbd ">") 'end-of-buffer)
-(define-key god-local-mode-map (kbd "SPC") 'scroll-up-command)
-(define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
-
-(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
-(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
-
-(god-mode-all)
-
-(add-hook 'god-local-mode-hook 'company-abort)
-
-
-(defun +wk-prefix-then-des-order (acons bcons)
-  (let ((apref? (which-key--group-p (cdr acons)))
-        (bpref? (which-key--group-p (cdr bcons))))
-    (if (xor apref? bpref?)
-        apref?
-      (which-key-description-order acons bcons))))
-
-(setq which-key-lighter nil
-      which-key-show-early-on-C-h t
-      which-key-add-column-padding 2
-      which-key-idle-secondary-delay 0
-      which-key-sort-order '+wk-prefix-then-des-order)
-
-(which-key-mode 1)
-
-(which-key-enable-god-mode-support)
 
 
 (setq recentf-max-saved-items 100)
@@ -324,7 +341,6 @@
       org-html-validation-link nil
       org-special-ctrl-a/e t
       org-link-descriptive nil
-      org-footnote-auto-adjust t
       org-link-frame-setup '((file . find-file))
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
