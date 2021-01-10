@@ -13,10 +13,10 @@
                                   company
                                   eglot
                                   wgrep
-                                  pyim
-                                  posframe
                                   htmlize
-                                  pdf-tools))
+                                  pdf-tools
+                                  pyim
+                                  posframe))
 
 (require 'package)
 
@@ -69,24 +69,55 @@
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 
+(defun +window-rotate ()
+  (interactive)
+  (if (= (count-windows) 2)
+      (let ((buffer-2 (window-buffer (next-window)))
+            (edge-1 (window-edges))
+            (edge-2 (window-edges (next-window))))
+        (delete-other-windows)
+        (if (= (car edge-1) (car edge-2))
+            (progn
+              (split-window-right)
+              (if (< (cadr edge-1) (cadr edge-2))
+                  (other-window 1)))
+          (split-window-below)
+          (if (> (car edge-1) (car edge-2))
+              (other-window 1)))
+        (set-window-buffer (next-window) buffer-2))))
+
+(global-set-key (kbd "C-x 9") '+window-rotate)
+(global-set-key (kbd "C-x C-9") '+window-rotate)
+
+
+(require 'god-mode-isearch)
+
 (setq isearch-lazy-count t)
 
-(defun +search-forward ()
+(defun +isearch-forward ()
   (interactive)
-  (if isearch-regexp
-      (search-forward isearch-string)
-    (re-search-forward isearch-string)))
+  (isearch-mode t isearch-regexp)
+  (god-mode-isearch-activate)
+  (isearch-repeat-forward))
 
-(defun +search-backward ()
+(defun +isearch-backward ()
   (interactive)
-  (if isearch-regexp
-      (search-backward isearch-string)
-    (re-search-backward isearch-string)))
+  (isearch-mode nil isearch-regexp)
+  (god-mode-isearch-activate)
+  (isearch-repeat-backward))
 
+(global-set-key (kbd "C-.") '+isearch-forward)
+(global-set-key (kbd "C-,") '+isearch-backward)
+
+(define-key god-mode-isearch-map (kbd ".") 'isearch-repeat-forward)
+(define-key god-mode-isearch-map (kbd ",") 'isearch-repeat-backward)
+
+(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
+(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
+
+
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "C-.") '+search-forward)
-(global-set-key (kbd "C-,") '+search-backward)
 
 (define-key special-mode-map (kbd "u") 'universal-argument)
 (define-key universal-argument-map (kbd "u") 'universal-argument-more)
@@ -100,8 +131,8 @@
 (define-key special-mode-map (kbd "e") 'move-end-of-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd ".") '+search-forward)
-(define-key special-mode-map (kbd ",") '+search-backward)
+(define-key special-mode-map (kbd ".") '+isearch-forward)
+(define-key special-mode-map (kbd ",") '+isearch-backward)
 (define-key special-mode-map (kbd "x") 'god-mode-self-insert)
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
@@ -110,7 +141,6 @@
       god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
 
 (require 'god-mode)
-(require 'god-mode-isearch)
 
 (global-set-key (kbd "<escape>") 'god-local-mode)
 (global-set-key (kbd "C-x g") 'god-local-mode)
@@ -127,9 +157,6 @@
 (define-key god-local-mode-map (kbd ">") 'end-of-buffer)
 (define-key god-local-mode-map (kbd "SPC") 'scroll-up-command)
 (define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
-
-(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
-(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
 
 (god-mode-all)
 
