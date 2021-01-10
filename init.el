@@ -90,34 +90,13 @@
 (global-set-key (kbd "C-x C-9") '+window-rotate)
 
 
-(require 'god-mode-isearch)
+(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-?") 'undo-redo)
 
 (setq isearch-lazy-count t)
 
-(defun +isearch-forward ()
-  (interactive)
-  (isearch-mode t isearch-regexp)
-  (god-mode-isearch-activate)
-  (isearch-repeat-forward))
-
-(defun +isearch-backward ()
-  (interactive)
-  (isearch-mode nil isearch-regexp)
-  (god-mode-isearch-activate)
-  (isearch-repeat-backward))
-
-(global-set-key (kbd "C-.") '+isearch-forward)
-(global-set-key (kbd "C-,") '+isearch-backward)
-
-(define-key god-mode-isearch-map (kbd ".") 'isearch-repeat-forward)
-(define-key god-mode-isearch-map (kbd ",") 'isearch-repeat-backward)
-
-(define-key isearch-mode-map (kbd "<escape>") 'god-mode-isearch-activate)
-(define-key god-mode-isearch-map (kbd "<escape>") 'god-mode-isearch-disable)
-
-
-(global-set-key (kbd "C-z") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
+(define-key isearch-mode-map (kbd "<right>") 'isearch-repeat-forward)
+(define-key isearch-mode-map (kbd "<left>") 'isearch-repeat-backward)
 
 (define-key special-mode-map (kbd "u") 'universal-argument)
 (define-key universal-argument-map (kbd "u") 'universal-argument-more)
@@ -131,8 +110,6 @@
 (define-key special-mode-map (kbd "e") 'move-end-of-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd ".") '+isearch-forward)
-(define-key special-mode-map (kbd ",") '+isearch-backward)
 (define-key special-mode-map (kbd "x") 'god-mode-self-insert)
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
