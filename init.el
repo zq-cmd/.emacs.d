@@ -10,7 +10,6 @@
 (setq package-selected-packages '(god-mode
                                   which-key
                                   yasnippet
-                                  company
                                   eglot
                                   wgrep
                                   htmlize
@@ -45,14 +44,10 @@
 
 (require 'page-ext)
 
-(global-set-key (kbd "C-S-l") (lambda () (interactive) (insert ?\C-l)))
-
 (winner-mode 1)
 
 (global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "M-O") 'delete-other-windows)
 
-(global-set-key (kbd "C-x C-o") 'other-window)
 (global-set-key (kbd "C-x C-0") 'delete-window)
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
 (global-set-key (kbd "C-x C-2") 'split-window-below)
@@ -69,45 +64,21 @@
 (global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 
-(defun +window-rotate ()
-  (interactive)
-  (if (= (count-windows) 2)
-      (let ((buffer-2 (window-buffer (next-window)))
-            (edge-1 (window-edges))
-            (edge-2 (window-edges (next-window))))
-        (delete-other-windows)
-        (if (= (car edge-1) (car edge-2))
-            (progn
-              (split-window-right)
-              (if (< (cadr edge-1) (cadr edge-2))
-                  (other-window 1)))
-          (split-window-below)
-          (if (> (car edge-1) (car edge-2))
-              (other-window 1)))
-        (set-window-buffer (next-window) buffer-2))))
-
-(global-set-key (kbd "C-x 9") '+window-rotate)
-(global-set-key (kbd "C-x C-9") '+window-rotate)
-
-
+(global-set-key (kbd "C-.") 'imenu)
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-Z") 'zap-up-to-char)
+
+(define-key universal-argument-map (kbd "u") 'universal-argument-more)
 
 (setq isearch-lazy-count t)
 
 (define-key isearch-mode-map (kbd "<right>") 'isearch-repeat-forward)
 (define-key isearch-mode-map (kbd "<left>") 'isearch-repeat-backward)
 
-(define-key special-mode-map (kbd "u") 'universal-argument)
-(define-key universal-argument-map (kbd "u") 'universal-argument-more)
-
 (define-key special-mode-map (kbd "z") 'repeat)
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
-(define-key special-mode-map (kbd "f") 'forward-char)
-(define-key special-mode-map (kbd "b") 'backward-char)
-(define-key special-mode-map (kbd "a") 'move-beginning-of-line)
-(define-key special-mode-map (kbd "e") 'move-end-of-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
 (define-key special-mode-map (kbd "r") 'isearch-backward)
 (define-key special-mode-map (kbd "x") 'god-mode-self-insert)
@@ -137,8 +108,6 @@
 
 (god-mode-all)
 
-(add-hook 'god-local-mode-hook 'company-abort)
-
 
 (defun +wk-prefix-then-des-order (acons bcons)
   (let ((apref? (which-key--group-p (cdr acons)))
@@ -163,10 +132,8 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(global-set-key (kbd "C-S-r") 'raise-sexp)
-(global-set-key (kbd "C-S-d") 'delete-pair)
-
-(global-set-key (kbd "M-Z") 'zap-up-to-char)
+(global-set-key (kbd "M-R") 'raise-sexp)
+(global-set-key (kbd "M-D") 'delete-pair)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -189,7 +156,11 @@
      (concat "xdg-open " file))))
 
 (with-eval-after-load 'dired
+  (require 'dired-x)
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
+
+
+(advice-add 'project-eshell :override 'project-shell)
 
 
 (defun rg ()
@@ -207,56 +178,44 @@
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
 
-(add-hook 'ediff-after-quit-hook-internal 'winner-undo)
-
 
-(setq abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
-      yas-snippet-dirs '("~/.emacs.d/rsync/snippets")
-      yas-alias-to-yas/prefix-p nil
-      yas-prompt-functions '(yas-maybe-ido-prompt))
+(setq yas-alias-to-yas/prefix-p nil
+      yas-snippet-dirs '("~/.emacs.d/rsync/snippets"))
+
+(setq yas-minor-mode-map
+      (let ((map (make-sparse-keymap)))
+        (define-key map (kbd "C-x C-a C-s") 'yas-insert-snippet)
+        (define-key map (kbd "C-x C-a C-n") 'yas-new-snippet)
+        (define-key map (kbd "C-x C-a C-v") 'yas-visit-snippet-file)
+        map))
 
 (yas-global-mode 1)
 
+(define-key yas-minor-mode-map (kbd "TAB") yas-maybe-expand)
+
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 
-(defun +open-line ()
-  (interactive)
-  (cond ((expand-abbrev))
-        ((yas-active-snippets)
-         (yas-next-field-or-maybe-expand))
-        ((yas-expand))
-        (t
-         (open-line 1))))
-
-(global-set-key (kbd "C-o") '+open-line)
-(global-set-key (kbd "C-S-o") 'open-line)
-
 
-(setq completion-styles '(basic)
-      dabbrev-case-replace nil
-      dabbrev-case-distinction nil
-      dabbrev-case-fold-search nil)
+(setq completion-styles '(basic))
 
-(setq company-idle-delay 0.3
-      company-dabbrev-downcase nil
-      company-dabbrev-ignore-case nil
-      company-dabbrev-other-buffers nil
-      company-frontends
-      '(company-pseudo-tooltip-unless-just-one-frontend
-        company-preview-if-just-one-frontend)
-      company-backends
-      '(company-files (company-dabbrev-code company-keywords) company-dabbrev))
+(setq hippie-expand-try-functions-list
+      '(try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol))
 
-(global-company-mode 1)
-
-(setcdr (assq 'company-mode minor-mode-alist) '(""))
+(global-set-key (kbd "M-/") 'hippie-expand)
 
 
 (setq recentf-max-saved-items 100)
 
 (recentf-mode 1)
 
-(setq ido-use-virtual-buffers t
+(setq ido-enable-regexp t
+      ido-use-virtual-buffers t
       ido-use-url-at-point t
       ido-use-filename-at-point 'guess)
 
@@ -264,72 +223,41 @@
 
 (ido-everywhere 1)
 
-(defun +completing-read-around
-    (func prompt collection &optional predicate require-match
-          initial-input hist def inherit-input-method)
-  (if (bound-and-true-p ido-cur-list)
-      (funcall func prompt collection predicate require-match
-               initial-input hist def inherit-input-method)
-    ;; ido comp read if collection is a string
-    ;; else trans collection to string list using all-completions
-    (if (and (listp collection)
-             (stringp (car collection)))
-        (ido-completing-read prompt collection predicate require-match
-                             initial-input hist def inherit-input-method)
-      (let ((allcomp (all-completions "" collection predicate)))
-        (ido-completing-read prompt allcomp nil require-match
-                             initial-input hist def inherit-input-method)))))
-
-(advice-add 'completing-read :around '+completing-read-around)
-
-(defun +read-extended-command-around (func)
-  (let ((ido-enable-flex-matching t))
-    (funcall func)))
-
-(advice-add 'read-extended-command :around '+read-extended-command-around)
+(define-key ido-common-completion-map (kbd "SPC")
+  (lambda () (interactive) (insert (if ido-enable-regexp ".*" " "))))
 
 
-(setq eshell-modules-list
-      '(eshell-alias
-        eshell-basic
-        eshell-cmpl
-        eshell-dirs
-        eshell-glob
-        eshell-hist
-        eshell-ls
-        eshell-pred
-        eshell-prompt
-        eshell-tramp
-        eshell-unix)
-      eshell-cd-on-directory nil
-      eshell-aliases-file "~/.emacs.d/rsync/alias")
+(setq enable-recursive-minibuffers t)
 
-(defun +eshell-history ()
-  (interactive)
-  (let* ((ido-enable-flex-matching t)
-         (hist (completing-read "history: "
-                                (ring-elements eshell-history-ring))))
-    (eshell-kill-input)
-    (insert hist)))
+(defun +ido-completing-read
+    (prompt collection &optional predicate require-match
+            initial-input hist def inherit-input-method)
+  (let ((choices (all-completions (or initial-input "") collection predicate)))
+    (ido-completing-read prompt choices nil require-match
+                         nil hist def inherit-input-method)))
 
-(with-eval-after-load 'em-hist
-  (define-key eshell-hist-mode-map (kbd "M-s") nil)
-  (define-key eshell-hist-mode-map (kbd "M-r") '+eshell-history))
+(setq completing-read-function '+ido-completing-read)
+
+(defun +ido-completion-in-region (beg end collection &optional predicate)
+  (let* ((prefix (buffer-substring beg end))
+         (choices (all-completions prefix collection predicate))
+         (choice (cond ((not choices) nil)
+                       ((not (cdr choices)) (car choices))
+                       (t (ido-completing-read "complete: " choices nil t)))))
+    (if (string-prefix-p prefix choice)
+        (insert (substring choice (- end beg))))))
+
+(setq completion-in-region-function '+ido-completion-in-region)
 
 
-(setq-default display-line-numbers-width 4)
+(defun +tab-completion (&optional arg)
+  (interactive "P")
+  (if (or (use-region-p)
+          (<= (point) (save-excursion (back-to-indentation) (point))))
+      (indent-for-tab-command arg)
+    (completion-at-point)))
 
-(add-hook 'prog-mode-hook 'hs-minor-mode)
-(add-hook 'prog-mode-hook 'display-line-numbers-mode)
-
-(define-key prog-mode-map (kbd "C-c C-j") 'imenu)
-(define-key prog-mode-map (kbd "C-c C-i") 'hs-toggle-hiding)
-
-
-(add-hook 'emacs-lisp-mode-hook
-          (lambda ()
-            (setq-local company-backends
-                        '(company-capf company-files company-dabbrev))))
+(define-key prog-mode-map (kbd "TAB") '+tab-completion)
 
 
 (setq python-indent-guess-indent-offset nil
@@ -337,9 +265,9 @@
       org-babel-python-command "python3")
 
 
-(setq org-modules '(org-tempo ol-eshell)
+(setq org-modules '(org-tempo)
       org-babel-load-languages
-      '((emacs-lisp . t) (eshell . t) (shell . t) (C . t) (python . t))
+      '((emacs-lisp . t) (shell . t) (C . t) (python . t))
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
@@ -350,8 +278,7 @@
       org-src-window-setup 'current-window)
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
-  (define-key org-mode-map (kbd "C-c C-&") 'org-mark-ring-goto))
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
 
 
 (with-eval-after-load 'pdf-tools
