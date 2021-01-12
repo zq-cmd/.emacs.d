@@ -248,24 +248,19 @@
 (setq completion-in-region-function '+ido-completion-in-region)
 
 
+(defun +tab-completion-filter (command)
+  (if (or (use-region-p)
+          (<= (current-column)
+              (current-indentation)))
+      command
+    'completion-at-point))
+
 (define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" nil :filter
-              (lambda (&optional _)
-                (if (or (use-region-p)
-                        (<= (current-column)
-                            (current-indentation)))
-                    'indent-for-tab-command
-                  'completion-at-point))))
+  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
 
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
-    '(menu-item "" nil :filter
-                (lambda (&optional _)
-                  (if (or (use-region-p)
-                          (<= (current-column)
-                              (current-indentation)))
-                      'c-indent-line-or-region
-                    'completion-at-point)))))
+    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 
 (setq python-indent-guess-indent-offset nil
