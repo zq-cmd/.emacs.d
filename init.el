@@ -42,8 +42,6 @@
     (load-theme 'deeper-blue))
 
 
-(require 'page-ext)
-
 (winner-mode 1)
 
 (global-set-key (kbd "M-o") 'other-window)
@@ -250,14 +248,24 @@
 (setq completion-in-region-function '+ido-completion-in-region)
 
 
-(defun +tab-completion (&optional arg)
-  (interactive "P")
-  (if (or (use-region-p)
-          (<= (point) (save-excursion (back-to-indentation) (point))))
-      (indent-for-tab-command arg)
-    (completion-at-point)))
+(define-key prog-mode-map (kbd "TAB")
+  '(menu-item "" nil :filter
+              (lambda (&optional _)
+                (if (or (use-region-p)
+                        (<= (current-column)
+                            (current-indentation)))
+                    'indent-for-tab-command
+                  'completion-at-point))))
 
-(define-key prog-mode-map (kbd "TAB") '+tab-completion)
+(with-eval-after-load 'cc-mode
+  (define-key c-mode-base-map (kbd "TAB")
+    '(menu-item "" nil :filter
+                (lambda (&optional _)
+                  (if (or (use-region-p)
+                          (<= (current-column)
+                              (current-indentation)))
+                      'c-indent-line-or-region
+                    'completion-at-point)))))
 
 
 (setq python-indent-guess-indent-offset nil
