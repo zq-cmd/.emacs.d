@@ -2,14 +2,11 @@
 .#*
 *.elc
 rsync
-TAGS
 auto-save-list
 elpa
 url
 tramp
-eshell
 pyim
-bookmarks
 projects
 recentf
 ido.last

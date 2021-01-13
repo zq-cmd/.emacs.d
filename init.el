@@ -89,7 +89,7 @@
     ("C-x C-r" . "C-x r")
     ("C-x C-n" . "C-x n")))
 
-(defun +god-mode-lookup-command-overrice (key-string)
+(defun +god-mode-lookup-command-override (key-string)
   (when key-string
     (let ((preffer (and (string-match-p "^C-x C-[a-z]$" key-string)
                         (assoc key-string +god-preffer-alist))))
@@ -103,14 +103,14 @@
                 ((keymapp binding)
                  (god-mode-lookup-key-sequence nil key-string))
                 (t
-                 (if (string-match-p "C-[a-z0-9]$" key-string)
+                 (if (string-match-p "C-.$" key-string)
                      (let ((len (length key-string)))
                        (god-mode-lookup-command
                         (concat (substring key-string 0 (- len 3))
                                 (substring key-string (- len 1) len))))
                    (error "God: Unknown key binding for `%s`" key-string)))))))))
 
-(advice-add 'god-mode-lookup-command :override '+god-mode-lookup-command-overrice)
+(advice-add 'god-mode-lookup-command :override '+god-mode-lookup-command-override)
 
 
 (defun +wk-prefix-then-des-order (acons bcons)
