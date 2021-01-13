@@ -17,8 +17,6 @@
                                   pyim
                                   posframe))
 
-(require 'package)
-
 (unless (package-installed-p 'god-mode)
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
@@ -39,9 +37,11 @@
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 
-(winner-mode 1)
-
+;; optimize for god mode
 (global-set-key (kbd "M-o") 'other-window)
+
+(global-set-key (kbd "C-x b") 'list-buffers)
+(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
 
 (global-set-key (kbd "C-x C-0") 'delete-window)
 (global-set-key (kbd "C-x C-1") 'delete-other-windows)
@@ -55,14 +55,10 @@
 (define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
 (define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
 
-(global-set-key (kbd "C-x b") 'list-buffers)
-(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
-
 
 (global-set-key (kbd "C-.") 'imenu)
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-Z") 'zap-up-to-char)
 
 (define-key universal-argument-map (kbd "u") 'universal-argument-more)
 
@@ -71,7 +67,6 @@
 (define-key isearch-mode-map (kbd "<right>") 'isearch-repeat-forward)
 (define-key isearch-mode-map (kbd "<left>") 'isearch-repeat-backward)
 
-(define-key special-mode-map (kbd "z") 'repeat)
 (define-key special-mode-map (kbd "n") 'next-line)
 (define-key special-mode-map (kbd "p") 'previous-line)
 (define-key special-mode-map (kbd "s") 'isearch-forward)
@@ -127,8 +122,8 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(global-set-key (kbd "M-R") 'raise-sexp)
-(global-set-key (kbd "M-D") 'delete-pair)
+(global-set-key (kbd "C-M-j") 'raise-sexp)
+(global-set-key (kbd "C-M-d") 'delete-pair)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -203,7 +198,16 @@
         try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
+(defun +hippie-expand-line (&optional arg)
+  (interactive "P")
+  (let ((hippie-expand-try-functions-list
+         '(try-expand-whole-kill
+           try-expand-line
+           try-expand-line-all-buffers)))
+    (hippie-expand arg)))
+
 (global-set-key (kbd "M-/") 'hippie-expand)
+(global-set-key (kbd "C-M-/") '+hippie-expand-line)
 
 
 (setq recentf-max-saved-items 100)
@@ -264,8 +268,7 @@
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
-(setq python-indent-guess-indent-offset nil
-      python-shell-interpreter "python3"
+(setq python-shell-interpreter "python3"
       org-babel-python-command "python3")
 
 
@@ -356,8 +359,8 @@
 (with-eval-after-load 'pyim
   ;; fix zirjma
   (setcdr (last (car (last (assq 'ziranma-shuangpin pyim-schemes))))
-          '(("aj" "an") ("al" "ai") ("ao" "ak")
-            ("ez" "ei") ("ef" "en") ("ou" "ob")))
+          '(("aj" "an") ("al" "ai") ("ak" "ao")
+            ("ez" "ei") ("ef" "en") ("ob" "ou")))
   (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
   (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
   (pyim-basedict-enable))
