@@ -38,9 +38,6 @@
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
-(if (display-graphic-p)
-    (load-theme 'deeper-blue))
-
 
 (winner-mode 1)
 
@@ -136,6 +133,7 @@
 
 (setq confirm-kill-emacs 'y-or-n-p
       disabled-command-function nil
+      auto-save-visited-interval 30
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
@@ -261,6 +259,9 @@
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
     '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+
+
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
 (setq python-indent-guess-indent-offset nil
