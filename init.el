@@ -37,28 +37,10 @@
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 
-;; optimize for god mode
-(global-set-key (kbd "M-o") 'other-window)
-
-(global-set-key (kbd "C-x b") 'list-buffers)
-(global-set-key (kbd "C-x C-b") 'switch-to-buffer)
-
-(global-set-key (kbd "C-x C-0") 'delete-window)
-(global-set-key (kbd "C-x C-1") 'delete-other-windows)
-(global-set-key (kbd "C-x C-2") 'split-window-below)
-(global-set-key (kbd "C-x C-3") 'split-window-right)
-
-(global-set-key (kbd "C-x C-4") ctl-x-4-map)
-(global-set-key (kbd "C-x C-5") ctl-x-5-map)
-
-(define-key ctl-x-5-map (kbd "C-0") 'delete-frame)
-(define-key ctl-x-4-map (kbd "C-b") 'switch-to-buffer-other-window)
-(define-key ctl-x-5-map (kbd "C-b") 'switch-to-buffer-other-frame)
-
-
 (global-set-key (kbd "C-.") 'imenu)
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-o") 'other-window)
 
 (define-key universal-argument-map (kbd "u") 'universal-argument-more)
 
@@ -81,7 +63,7 @@
 (require 'god-mode)
 
 (global-set-key (kbd "<escape>") 'god-local-mode)
-(global-set-key (kbd "C-x g") 'god-local-mode)
+(global-set-key (kbd "M-z") 'god-local-mode)
 
 ;; god mode remap self-insert-command
 (defun +self-insert-command () (interactive) (self-insert-command 1))
@@ -97,6 +79,38 @@
 (define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
 
 (god-mode-all)
+
+
+(defvar +god-preffer-alist
+  '(("C-x C-b" . "C-x b")
+    ("C-x C-o" . "C-x o")
+    ("C-x C-p" . "C-x p")
+    ("C-x C-v" . "C-x v")
+    ("C-x C-r" . "C-x r")
+    ("C-x C-n" . "C-x n")))
+
+(defun +god-mode-lookup-command-overrice (key-string)
+  (when key-string
+    (let ((preffer (and (string-match-p "^C-x C-[a-z]$" key-string)
+                        (assoc key-string +god-preffer-alist))))
+      (if preffer
+          (god-mode-lookup-command (cdr preffer))
+        (let* ((key-vector (read-kbd-macro key-string t))
+               (binding (key-binding key-vector)))
+          (cond ((commandp binding)
+                 (setq last-command-event (aref key-vector (- (length key-vector) 1)))
+                 binding)
+                ((keymapp binding)
+                 (god-mode-lookup-key-sequence nil key-string))
+                (t
+                 (if (string-match-p "C-[a-z0-9]$" key-string)
+                     (let ((len (length key-string)))
+                       (god-mode-lookup-command
+                        (concat (substring key-string 0 (- len 3))
+                                (substring key-string (- len 1) len))))
+                   (error "God: Unknown key binding for `%s`" key-string)))))))))
+
+(advice-add 'god-mode-lookup-command :override '+god-mode-lookup-command-overrice)
 
 
 (defun +wk-prefix-then-des-order (acons bcons)
