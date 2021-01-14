@@ -57,6 +57,15 @@
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 
+(setq-default indent-tabs-mode nil)
+
+(show-paren-mode 1)
+(electric-pair-mode 1)
+
+(global-set-key (kbd "C-M-j") 'raise-sexp)
+(global-set-key (kbd "C-M-d") 'delete-pair)
+
+
 (setq god-mode-enable-function-key-translation nil
       god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
 
@@ -98,7 +107,8 @@
         (let* ((key-vector (read-kbd-macro key-string t))
                (binding (key-binding key-vector)))
           (cond ((commandp binding)
-                 (setq last-command-event (aref key-vector (- (length key-vector) 1)))
+                 (setq last-command-event
+                       (aref key-vector (- (length key-vector) 1)))
                  binding)
                 ((keymapp binding)
                  (god-mode-lookup-key-sequence nil key-string))
@@ -108,9 +118,11 @@
                        (god-mode-lookup-command
                         (concat (substring key-string 0 (- len 3))
                                 (substring key-string (- len 1) len))))
-                   (error "God: Unknown key binding for `%s`" key-string)))))))))
+                   (error "God: Unknown key binding for `%s`"
+                          key-string)))))))))
 
-(advice-add 'god-mode-lookup-command :override '+god-mode-lookup-command-override)
+(advice-add 'god-mode-lookup-command
+            :override '+god-mode-lookup-command-override)
 
 
 (defun +wk-prefix-then-des-order (acons bcons)
@@ -129,15 +141,6 @@
 (which-key-mode 1)
 
 (which-key-enable-god-mode-support)
-
-
-(setq-default indent-tabs-mode nil)
-
-(show-paren-mode 1)
-(electric-pair-mode 1)
-
-(global-set-key (kbd "C-M-j") 'raise-sexp)
-(global-set-key (kbd "C-M-d") 'delete-pair)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -187,16 +190,7 @@
 (setq yas-alias-to-yas/prefix-p nil
       yas-snippet-dirs '("~/.emacs.d/rsync/snippets"))
 
-(setq yas-minor-mode-map
-      (let ((map (make-sparse-keymap)))
-        (define-key map (kbd "C-x C-a C-s") 'yas-insert-snippet)
-        (define-key map (kbd "C-x C-a C-n") 'yas-new-snippet)
-        (define-key map (kbd "C-x C-a C-v") 'yas-visit-snippet-file)
-        map))
-
 (yas-global-mode 1)
-
-(define-key yas-minor-mode-map (kbd "TAB") yas-maybe-expand)
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 
