@@ -228,14 +228,9 @@
         try-expand-all-abbrevs
         try-expand-dabbrev
         try-expand-dabbrev-all-buffers
-        try-complete-lisp-symbol))
-
-(defun +hippie-expand-line (&optional arg)
-  (interactive "P")
-  (let ((hippie-expand-try-functions-list
-         '(try-expand-line
-           try-expand-line-all-buffers)))
-    (hippie-expand arg)))
+        try-complete-lisp-symbol
+        try-expand-line
+        try-expand-line-all-buffers))
 
 (defun +try-expand-all-abbrevs-around (func old)
   (let (abbrev-table-name-list) (funcall func old)))
@@ -243,7 +238,6 @@
 (advice-add 'try-expand-all-abbrevs :around '+try-expand-all-abbrevs-around)
 
 (global-set-key (kbd "M-/") 'hippie-expand)
-(global-set-key (kbd "C-M-/") '+hippie-expand-line)
 
 
 (setq recentf-max-saved-items 100)
