@@ -9,7 +9,6 @@
 
 (setq package-selected-packages '(god-mode
                                   which-key
-                                  yasnippet
                                   eglot
                                   wgrep
                                   htmlize
@@ -17,13 +16,14 @@
                                   pyim
                                   posframe))
 
+(require 'package)
+
 (unless (package-installed-p 'god-mode)
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
 
 
-(tooltip-mode -1)
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 (scroll-bar-mode -1)
@@ -150,9 +150,42 @@
       vc-make-backup-files t
       version-control 'never
       backup-directory-alist '(("." . "~/.bak"))
+      abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
       bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
 (auto-save-visited-mode 1)
+
+
+(defvar +macro-file "~/.emacs.d/rsync/macro_defs")
+
+(if (file-exists-p +macro-file)
+    (load-file +macro-file))
+
+(defun +kmacro-name-and-save-last-macro ()
+  (interactive)
+  (let ((symbol (intern (concat "k-" (read-string "symbol: ")))))
+    (kmacro-name-last-macro symbol)
+    (let ((wc (current-window-configuration)))
+      (find-file +macro-file)
+      (widen)
+      (goto-char (point-min))
+      (insert "\n")
+      (insert-kbd-macro symbol)
+      (set-window-configuration wc))))
+
+(defun +kmacro-exec ()
+  (interactive)
+  (let ((macro
+         (intern
+          (completing-read
+           "macro: " obarray 'kmacro-keyboard-macro-p t)))
+        (god god-local-mode)
+        current-input-method)
+    (if god (god-local-mode -1))
+    (funcall macro)
+    (if god (god-local-mode 1))))
+
+(global-set-key (kbd "<f5>") '+kmacro-exec)
 
 
 (setq dired-listing-switches "-alh")
@@ -187,32 +220,27 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
-(setq yas-alias-to-yas/prefix-p nil
-      yas-snippet-dirs '("~/.emacs.d/rsync/snippets"))
-
-(yas-global-mode 1)
-
-(setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
-
-
 (setq completion-styles '(basic))
 
 (setq hippie-expand-try-functions-list
       '(try-complete-file-name-partially
         try-complete-file-name
+        try-expand-all-abbrevs
         try-expand-dabbrev
         try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill
-        try-complete-lisp-symbol-partially
         try-complete-lisp-symbol))
 
 (defun +hippie-expand-line (&optional arg)
   (interactive "P")
   (let ((hippie-expand-try-functions-list
-         '(try-expand-whole-kill
-           try-expand-line
+         '(try-expand-line
            try-expand-line-all-buffers)))
     (hippie-expand arg)))
+
+(defun +try-expand-all-abbrevs-around (func old)
+  (let (abbrev-table-name-list) (funcall func old)))
+
+(advice-add 'try-expand-all-abbrevs :around '+try-expand-all-abbrevs-around)
 
 (global-set-key (kbd "M-/") 'hippie-expand)
 (global-set-key (kbd "C-M-/") '+hippie-expand-line)
