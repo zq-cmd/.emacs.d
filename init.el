@@ -141,27 +141,14 @@
   (interactive "P")
   (insert-pair (or arg 1)))
 
-(defun +splice-pair ()
-  (interactive)
-  (let ((delete-pair-blink-delay 0))
-    (save-excursion
-      (backward-up-list)
-      (delete-pair))))
-
 (dolist (key '("(" "[" "{" "`" "'" "\""))
   (define-key god-local-mode-map (kbd key) '+self-insert-command)
   (global-set-key (kbd (concat "M-" key)) '+insert-pair))
 
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
-(global-set-key (kbd "M-S") '+splice-pair)
 (global-set-key (kbd "C-M-DEL") 'backward-kill-sexp)
 (global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
-
-(global-set-key (kbd "M-n") 'forward-paragraph)
-(global-set-key (kbd "M-p") 'backward-paragraph)
-(global-set-key (kbd "M-N") 'forward-page)
-(global-set-key (kbd "M-P") 'backward-page)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
