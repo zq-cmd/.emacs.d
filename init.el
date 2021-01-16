@@ -93,6 +93,7 @@
 (defvar +god-preffer-alist
   '(("C-x C-b" . "C-x b")
     ("C-x C-o" . "C-x o")
+    ("C-x C-0" . "C-x 0")
     ("C-x C-p" . "C-x p")
     ("C-x C-v" . "C-x v")
     ("C-x C-r" . "C-x r")
@@ -100,7 +101,7 @@
 
 (defun +god-mode-lookup-command-override (key-string)
   (when key-string
-    (let ((preffer (and (string-match-p "^C-x C-[a-z]$" key-string)
+    (let ((preffer (and (string-match-p "^C-x C-.$" key-string)
                         (assoc key-string +god-preffer-alist))))
       (if preffer
           (god-mode-lookup-command (cdr preffer))
@@ -314,7 +315,10 @@
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
   (setq org-structure-template-alist
         (append org-structure-template-alist
-                '(("el" . "elisp") ("sh" . "bash") ("cpp" . "cpp") ("py" . "python")))))
+                '(("el" . "elisp")
+                  ("sh" . "bash")
+                  ("cc" . "cpp")
+                  ("py" . "python")))))
 
 
 (with-eval-after-load 'pdf-tools
