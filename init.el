@@ -57,15 +57,6 @@
 (define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 
-(setq-default indent-tabs-mode nil)
-
-(show-paren-mode 1)
-(electric-pair-mode 1)
-
-(global-set-key (kbd "C-M-j") 'raise-sexp)
-(global-set-key (kbd "C-M-d") 'delete-pair)
-
-
 (setq god-mode-enable-function-key-translation nil
       god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
 
@@ -73,13 +64,6 @@
 
 (global-set-key (kbd "<escape>") 'god-local-mode)
 (global-set-key (kbd "M-z") 'god-local-mode)
-
-;; god mode remap self-insert-command
-(defun +self-insert-command () (interactive) (self-insert-command 1))
-
-;; surround region in god mode
-(dolist (key '("(" ")" "[" "]" "{" "}" "`" "'" "\""))
-  (define-key god-local-mode-map (kbd key) '+self-insert-command))
 
 (define-key god-local-mode-map (kbd "q") 'quit-window)
 (define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
@@ -142,6 +126,42 @@
 (which-key-mode 1)
 
 (which-key-enable-god-mode-support)
+
+
+(setq-default indent-tabs-mode nil)
+
+(show-paren-mode 1)
+(electric-pair-mode 1)
+
+(defun +self-insert-command ()
+  (interactive)
+  (self-insert-command 1))
+
+(defun +insert-pair (&optional arg)
+  (interactive "P")
+  (insert-pair (or arg 1)))
+
+(defun +splice-pair ()
+  (interactive)
+  (let ((delete-pair-blink-delay 0))
+    (save-excursion
+      (backward-up-list)
+      (delete-pair))))
+
+(dolist (key '("(" "[" "{" "`" "'" "\""))
+  (define-key god-local-mode-map (kbd key) '+self-insert-command)
+  (global-set-key (kbd (concat "M-" key)) '+insert-pair))
+
+(global-set-key (kbd "M-R") 'raise-sexp)
+(global-set-key (kbd "M-D") 'delete-pair)
+(global-set-key (kbd "M-S") '+splice-pair)
+(global-set-key (kbd "C-M-DEL") 'backward-kill-sexp)
+(global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
+
+(global-set-key (kbd "M-n") 'forward-paragraph)
+(global-set-key (kbd "M-p") 'backward-paragraph)
+(global-set-key (kbd "M-N") 'forward-page)
+(global-set-key (kbd "M-P") 'backward-page)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -341,14 +361,14 @@
 
 (defvar +text-scale-index 4)
 
-(defun +text-scale-set (&optional frame)
+(defun +text-scale-set ()
   (when (display-graphic-p)
     (let ((scale (aref +text-scale-list +text-scale-index)))
       (set-face-attribute
-       'default frame
+       'default nil
        :font (font-spec :name "Ubuntu Mono" :size (car scale)))
       (set-fontset-font
-       (frame-parameter frame 'font)
+       (frame-parameter nil 'font)
        'han
        (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale))))))
 
