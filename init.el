@@ -165,13 +165,9 @@
   (interactive)
   (let ((symbol (intern (concat "k-" (read-string "symbol: ")))))
     (kmacro-name-last-macro symbol)
-    (let ((wc (current-window-configuration)))
-      (find-file +macro-file)
-      (widen)
+    (with-current-buffer (find-file-noselect +macro-file)
       (goto-char (point-min))
-      (insert "\n")
-      (insert-kbd-macro symbol)
-      (set-window-configuration wc))))
+      (insert-kbd-macro symbol))))
 
 (defun +kmacro-exec ()
   (interactive)
@@ -315,7 +311,10 @@
       org-src-window-setup 'current-window)
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
+  (setq org-structure-template-alist
+        (append org-structure-template-alist
+                '(("el" . "elisp") ("sh" . "bash") ("cpp" . "cpp") ("py" . "python")))))
 
 
 (with-eval-after-load 'pdf-tools
