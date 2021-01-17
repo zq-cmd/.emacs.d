@@ -77,6 +77,7 @@
 (defvar +god-preffer-alist
   '(("C-x C-b" . "C-x b")
     ("C-x C-k" . "C-x k")
+    ("C-x C-d" . "C-x d")
     ("C-x C-o" . "C-x o")
     ("C-x C-0" . "C-x 0")
     ("C-x C-p" . "C-x p")
@@ -170,34 +171,6 @@
 (auto-save-visited-mode 1)
 
 
-(defvar +macro-file "~/.emacs.d/rsync/macro_defs")
-
-(if (file-exists-p +macro-file)
-    (load-file +macro-file))
-
-(defun +kmacro-name-and-save-last-macro ()
-  (interactive)
-  (let ((symbol (intern (concat "k-" (read-string "symbol: ")))))
-    (kmacro-name-last-macro symbol)
-    (with-current-buffer (find-file-noselect +macro-file)
-      (goto-char (point-min))
-      (insert-kbd-macro symbol))))
-
-(defun +kmacro-exec ()
-  (interactive)
-  (let ((macro
-         (intern
-          (completing-read
-           "macro: " obarray 'kmacro-keyboard-macro-p t)))
-        (god god-local-mode)
-        current-input-method)
-    (if god (god-local-mode -1))
-    (funcall macro)
-    (if god (god-local-mode 1))))
-
-(global-set-key (kbd "<f5>") '+kmacro-exec)
-
-
 (setq dired-listing-switches "-alh")
 
 (defun +dired-do-xdg-open ()
@@ -262,6 +235,10 @@
 (require 'ido)
 
 (ido-everywhere 1)
+
+(put 'dired-do-copy 'ido 'dir)
+(put 'dired-do-rename 'ido 'dir)
+(put 'dired-goto-file 'ido 'ignore)
 
 (define-key ido-common-completion-map (kbd "SPC")
   (lambda () (interactive) (insert (if ido-enable-regexp ".*" " "))))
