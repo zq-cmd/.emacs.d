@@ -98,14 +98,19 @@
                  binding)
                 ((keymapp binding)
                  (god-mode-lookup-key-sequence nil key-string))
+                ((string-match-p " C-.$" key-string)
+                 (let ((len (length key-string)))
+                   (god-mode-lookup-command
+                    (concat (substring key-string 0 (- len 3))
+                            (substring key-string (- len 1) len)))))
+                ((string-match-p " C-S-.$" key-string)
+                 (let ((len (length key-string)))
+                   (god-mode-lookup-command
+                    (concat (substring key-string 0 (- len 5))
+                            (substring key-string (- len 1) len)))))
                 (t
-                 (if (string-match-p " C-.$" key-string)
-                     (let ((len (length key-string)))
-                       (god-mode-lookup-command
-                        (concat (substring key-string 0 (- len 3))
-                                (substring key-string (- len 1) len))))
-                   (error "God: Unknown key binding for `%s`"
-                          key-string)))))))))
+                 (error "God: Unknown key binding for `%s`"
+                          key-string))))))))
 
 (advice-add 'god-mode-lookup-command
             :override '+god-mode-lookup-command-override)
