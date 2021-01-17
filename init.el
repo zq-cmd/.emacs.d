@@ -76,6 +76,7 @@
 
 (defvar +god-preffer-alist
   '(("C-x C-b" . "C-x b")
+    ("C-x C-k" . "C-x k")
     ("C-x C-o" . "C-x o")
     ("C-x C-0" . "C-x 0")
     ("C-x C-p" . "C-x p")
@@ -98,7 +99,7 @@
                 ((keymapp binding)
                  (god-mode-lookup-key-sequence nil key-string))
                 (t
-                 (if (string-match-p "C-.$" key-string)
+                 (if (string-match-p " C-.$" key-string)
                      (let ((len (length key-string)))
                        (god-mode-lookup-command
                         (concat (substring key-string 0 (- len 3))
