@@ -203,6 +203,8 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
+(setq-default abbrev-mode t)
+
 (setq completion-styles '(basic))
 
 (setq hippie-expand-try-functions-list
@@ -216,7 +218,8 @@
         try-expand-line-all-buffers))
 
 (defun +try-expand-all-abbrevs-around (func old)
-  (let (abbrev-table-name-list) (funcall func old)))
+  (let ((abbrev-table-name-list '(+he-abbrev-table)))
+    (funcall func old)))
 
 (advice-add 'try-expand-all-abbrevs :around '+try-expand-all-abbrevs-around)
 
