@@ -217,12 +217,6 @@
         try-expand-line
         try-expand-line-all-buffers))
 
-(defun +try-expand-all-abbrevs-around (func old)
-  (let ((abbrev-table-name-list '(+he-abbrev-table)))
-    (funcall func old)))
-
-(advice-add 'try-expand-all-abbrevs :around '+try-expand-all-abbrevs-around)
-
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 
@@ -305,13 +299,7 @@
       org-src-window-setup 'current-window)
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<)))
-  (setq org-structure-template-alist
-        (append org-structure-template-alist
-                '(("el" . "elisp")
-                  ("sh" . "bash")
-                  ("cc" . "cpp")
-                  ("py" . "python")))))
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
 
 
 (with-eval-after-load 'pdf-tools
