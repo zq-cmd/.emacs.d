@@ -9,10 +9,9 @@
 
 (setq package-selected-packages '(god-mode
                                   which-key
-                                  eglot
                                   wgrep
+                                  eglot
                                   htmlize
-                                  pdf-tools
                                   pyim
                                   posframe))
 
@@ -213,6 +212,7 @@
         try-expand-all-abbrevs
         try-expand-dabbrev
         try-expand-dabbrev-all-buffers
+        try-complete-lisp-symbol-partially
         try-complete-lisp-symbol
         try-expand-line
         try-expand-line-all-buffers))
@@ -224,8 +224,7 @@
 
 (recentf-mode 1)
 
-(setq ido-enable-regexp t
-      ido-use-virtual-buffers t
+(setq ido-use-virtual-buffers t
       ido-use-url-at-point t
       ido-use-filename-at-point 'guess)
 
@@ -236,9 +235,6 @@
 (put 'dired-do-copy 'ido 'dir)
 (put 'dired-do-rename 'ido 'dir)
 (put 'dired-goto-file 'ido 'ignore)
-
-(define-key ido-common-completion-map (kbd "SPC")
-  (lambda () (interactive) (insert (if ido-enable-regexp ".*" " "))))
 
 
 (setq enable-recursive-minibuffers t)
@@ -300,14 +296,6 @@
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
-
-
-(with-eval-after-load 'pdf-tools
-  (pdf-tools-install))
-
-(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
-
-(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 
 
 (defvar +text-scale-list
