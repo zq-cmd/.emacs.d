@@ -9,6 +9,9 @@
 
 (setq package-selected-packages '(god-mode
                                   which-key
+                                  selectrum
+                                  orderless
+                                  yasnippet
                                   wgrep
                                   eglot
                                   htmlize
@@ -27,26 +30,6 @@
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
-
-
-(global-set-key (kbd "C-.") 'imenu)
-(global-set-key (kbd "C-z") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-o") 'other-window)
-
-(define-key universal-argument-map (kbd "u") 'universal-argument-more)
-
-(setq isearch-lazy-count t)
-
-(define-key isearch-mode-map (kbd "<right>") 'isearch-repeat-forward)
-(define-key isearch-mode-map (kbd "<left>") 'isearch-repeat-backward)
-
-(define-key special-mode-map (kbd "n") 'next-line)
-(define-key special-mode-map (kbd "p") 'previous-line)
-(define-key special-mode-map (kbd "s") 'isearch-forward)
-(define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
-(define-key special-mode-map (kbd "c") 'god-mode-self-insert)
 
 
 (setq god-mode-enable-function-key-translation nil
@@ -127,6 +110,41 @@
 (which-key-enable-god-mode-support)
 
 
+(setq enable-recursive-minibuffers t
+      completion-styles '(orderless)
+      selectrum-refine-candidates-function 'orderless-filter
+      selectrum-highlight-candidates-function 'orderless-highlight-matches
+      orderless-matching-styles '(orderless-literal)
+      orderless-style-dispatchers '(+orderless-without-if-bang))
+
+(defun +orderless-without-if-bang (pattern _index _total)
+  (when (string-prefix-p "!" pattern)
+    `(orderless-without-literal . ,(substring pattern 1))))
+
+(selectrum-mode 1)
+
+(global-set-key (kbd "C-x C-z") 'selectrum-repeat)
+
+
+(defun +tab-completion-filter (command)
+  (if (or (use-region-p)
+          (<= (current-column)
+              (current-indentation)))
+      command
+    'completion-at-point))
+
+(define-key prog-mode-map (kbd "TAB")
+  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
+
+(with-eval-after-load 'cc-mode
+  (define-key c-mode-base-map (kbd "TAB")
+    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
+
+(global-set-key (kbd "C-c C-j") 'imenu)
+
+
 (setq-default indent-tabs-mode nil)
 
 (show-paren-mode 1)
@@ -150,15 +168,68 @@
 (global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
 
 
+(let ((file "~/.emacs.d/rsync/private.el"))
+  (if (file-exists-p file) (load-file file)))
+
+(setq yas-alias-to-yas/prefix-p nil
+      yas-prompt-functions '(yas-completing-prompt)
+      yas-snippet-dirs '("~/.snippets")
+      abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
+      bookmark-default-file "~/.emacs.d/rsync/bookmarks")
+
+(setq-default abbrev-mode t)
+
+(yas-global-mode 1)
+
+(dolist (mode '(abbrev-mode yas-minor-mode))
+  (setcdr (assq mode minor-mode-alist) '("")))
+
+(define-key yas-minor-mode-map (kbd "C-x y") 'yas-insert-snippet)
+(define-key yas-minor-mode-map (kbd "C-x a C-n") 'yas-new-snippet)
+(define-key yas-minor-mode-map (kbd "C-x a C-v") 'yas-visit-snippet-file)
+
+(advice-add 'yas-insert-snippet :after
+            (lambda (&optional _arg) (god-local-mode -1)))
+
+(setq hippie-expand-try-functions-list
+      '(yas-hippie-try-expand
+        try-expand-all-abbrevs
+        try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-complete-lisp-symbol-partially
+        try-complete-lisp-symbol
+        try-expand-line
+        try-expand-line-all-buffers))
+
+(global-set-key (kbd "M-/") 'hippie-expand)
+
+
+(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-o") 'other-window)
+
+(define-key universal-argument-map (kbd "u") 'universal-argument-more)
+
+(setq isearch-lazy-count t)
+
+(define-key special-mode-map (kbd "n") 'next-line)
+(define-key special-mode-map (kbd "p") 'previous-line)
+(define-key special-mode-map (kbd "s") 'isearch-forward)
+(define-key special-mode-map (kbd "r") 'isearch-backward)
+(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
+
+(ffap-bindings)
+
+
 (setq confirm-kill-emacs 'y-or-n-p
       disabled-command-function nil
       auto-save-visited-interval 30
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
-      backup-directory-alist '(("." . "~/.bak"))
-      abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
-      bookmark-default-file "~/.emacs.d/rsync/bookmarks")
+      backup-directory-alist '(("." . "~/.bak")))
 
 (auto-save-visited-mode 1)
 
@@ -176,9 +247,6 @@
   (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
 
 
-(advice-add 'project-eshell :override 'project-shell)
-
-
 (defun rg ()
   (interactive)
   (require 'grep)
@@ -193,82 +261,6 @@
 
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
-
-
-(setq-default abbrev-mode t)
-
-(setq completion-styles '(basic))
-
-(setq hippie-expand-try-functions-list
-      '(try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-all-abbrevs
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol
-        try-expand-line
-        try-expand-line-all-buffers))
-
-(global-set-key (kbd "M-/") 'hippie-expand)
-
-
-(setq recentf-max-saved-items 100)
-
-(recentf-mode 1)
-
-(setq ido-use-virtual-buffers t
-      ido-use-url-at-point t
-      ido-use-filename-at-point 'guess)
-
-(require 'ido)
-
-(ido-everywhere 1)
-
-(put 'dired-do-copy 'ido 'dir)
-(put 'dired-do-rename 'ido 'dir)
-(put 'dired-goto-file 'ido 'ignore)
-
-
-(setq enable-recursive-minibuffers t)
-
-(defun +ido-completing-read
-    (prompt collection &optional predicate require-match
-            initial-input hist def inherit-input-method)
-  (let ((choices (all-completions (or initial-input "") collection predicate)))
-    (ido-completing-read prompt choices nil require-match
-                         nil hist def inherit-input-method)))
-
-(setq completing-read-function '+ido-completing-read)
-
-(defun +ido-completion-in-region (beg end collection &optional predicate)
-  (let* ((prefix (buffer-substring beg end))
-         (choices (all-completions prefix collection predicate))
-         (choice (cond ((not choices) nil)
-                       ((not (cdr choices)) (car choices))
-                       (t (ido-completing-read "complete: " choices nil t)))))
-    (if (string-prefix-p prefix choice)
-        (insert (substring choice (- end beg))))))
-
-(setq completion-in-region-function '+ido-completion-in-region)
-
-
-(defun +tab-completion-filter (command)
-  (if (or (use-region-p)
-          (<= (current-column)
-              (current-indentation)))
-      command
-    'completion-at-point))
-
-(define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
-
-(with-eval-after-load 'cc-mode
-  (define-key c-mode-base-map (kbd "TAB")
-    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
-
-
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
 (setq python-shell-interpreter "python3"
@@ -343,11 +335,6 @@
 (defun +pyim-probe-god-mode-p () god-local-mode)
 
 (setq-default pyim-english-input-switch-functions '(+pyim-probe-god-mode-p))
-
-(add-hook 'org-mode-hook
-          (lambda ()
-            (setq pyim-english-input-switch-functions
-                  '(+pyim-probe-god-mode-p org-inside-LaTeX-fragment-p))))
 
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 

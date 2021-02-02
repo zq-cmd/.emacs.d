@@ -6,9 +6,8 @@ auto-save-list
 elpa
 url
 tramp
+games
 pyim
 projects
-recentf
-ido.last
 package-quickstart.el
 custom.el
