@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: ctex
+# key: <ctex
+# --
+#+latex_header: \\usepackage{ctex}
+#+latex_compiler: xelatex

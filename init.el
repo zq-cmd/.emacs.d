@@ -173,7 +173,6 @@
 
 (setq yas-alias-to-yas/prefix-p nil
       yas-prompt-functions '(yas-completing-prompt)
-      yas-snippet-dirs '("~/.snippets")
       abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
       bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 

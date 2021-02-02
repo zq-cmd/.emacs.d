@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: push
+# key: push
+# --
+rsync -rvz ~/.emacs.d/rsync root@`+yas-ip`:~/emacs
