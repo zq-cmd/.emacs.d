@@ -112,10 +112,10 @@
 
 (setq enable-recursive-minibuffers t
       completion-styles '(orderless)
-      selectrum-refine-candidates-function 'orderless-filter
-      selectrum-highlight-candidates-function 'orderless-highlight-matches
       orderless-matching-styles '(orderless-literal)
-      orderless-style-dispatchers '(+orderless-without-if-bang))
+      orderless-style-dispatchers '(+orderless-without-if-bang)
+      selectrum-refine-candidates-function 'orderless-filter
+      selectrum-highlight-candidates-function 'orderless-highlight-matches)
 
 (defun +orderless-without-if-bang (pattern _index _total)
   (when (string-prefix-p "!" pattern)
@@ -171,28 +171,15 @@
 (let ((file "~/.emacs.d/rsync/private.el"))
   (if (file-exists-p file) (load-file file)))
 
-(setq yas-alias-to-yas/prefix-p nil
-      yas-prompt-functions '(yas-completing-prompt)
-      abbrev-file-name "~/.emacs.d/rsync/abbrev_defs"
-      bookmark-default-file "~/.emacs.d/rsync/bookmarks")
+(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
-(setq-default abbrev-mode t)
+
+(setq yas-alias-to-yas/prefix-p nil)
 
 (yas-global-mode 1)
 
-(dolist (mode '(abbrev-mode yas-minor-mode))
-  (setcdr (assq mode minor-mode-alist) '("")))
-
-(define-key yas-minor-mode-map (kbd "C-x y") 'yas-insert-snippet)
-(define-key yas-minor-mode-map (kbd "C-x a C-n") 'yas-new-snippet)
-(define-key yas-minor-mode-map (kbd "C-x a C-v") 'yas-visit-snippet-file)
-
-(advice-add 'yas-insert-snippet :after
-            (lambda (&optional _arg) (god-local-mode -1)))
-
 (setq hippie-expand-try-functions-list
       '(yas-hippie-try-expand
-        try-expand-all-abbrevs
         try-complete-file-name-partially
         try-complete-file-name
         try-expand-dabbrev
