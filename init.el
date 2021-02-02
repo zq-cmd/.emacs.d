@@ -7,8 +7,7 @@
       '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
-(setq package-selected-packages '(god-mode
-                                  which-key
+(setq package-selected-packages '(which-key
                                   selectrum
                                   orderless
                                   yasnippet
@@ -20,7 +19,7 @@
 
 (require 'package)
 
-(unless (package-installed-p 'god-mode)
+(unless (package-installed-p 'which-key)
   (package-refresh-contents)
   (dolist (pkg package-selected-packages)
     (package-install pkg)))
@@ -32,66 +31,27 @@
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 
-(setq god-mode-enable-function-key-translation nil
-      god-mode-alist '((nil . "C-") ("g" . "M-") ("h" . "C-M-")))
+(setq-default indent-tabs-mode nil)
 
-(require 'god-mode)
+(show-paren-mode 1)
+(electric-pair-mode 1)
 
-(global-set-key (kbd "<escape>") 'god-local-mode)
-(global-set-key (kbd "M-z") 'god-local-mode)
+(defun +insert-pair (&optional arg)
+  (interactive "P")
+  (insert-pair (or arg 1)))
 
-(define-key god-local-mode-map (kbd "q") 'quit-window)
-(define-key god-local-mode-map (kbd "<") 'beginning-of-buffer)
-(define-key god-local-mode-map (kbd ">") 'end-of-buffer)
-(define-key god-local-mode-map (kbd "SPC") 'scroll-up-command)
-(define-key god-local-mode-map (kbd "S-SPC") 'scroll-down-command)
+(dolist (key '("(" "[" "{" "`" "'" "\""))
+  (global-set-key (kbd (concat "M-" key)) '+insert-pair))
 
-(god-mode-all)
-
-
-(defvar +god-preffer-alist
-  '(("C-x C-b" . "C-x b")
-    ("C-x C-k" . "C-x k")
-    ("C-x C-d" . "C-x d")
-    ("C-x C-o" . "C-x o")
-    ("C-x C-0" . "C-x 0")
-    ("C-x C-p" . "C-x p")
-    ("C-x C-v" . "C-x v")
-    ("C-x C-r" . "C-x r")
-    ("C-x C-n" . "C-x n")))
-
-(defun +god-mode-lookup-command-override (key-string)
-  (when key-string
-    (let ((preffer (and (string-match-p "^C-x C-.$" key-string)
-                        (assoc key-string +god-preffer-alist))))
-      (if preffer
-          (god-mode-lookup-command (cdr preffer))
-        (let* ((key-vector (read-kbd-macro key-string t))
-               (binding (key-binding key-vector)))
-          (cond ((commandp binding)
-                 (setq last-command-event
-                       (aref key-vector (- (length key-vector) 1)))
-                 binding)
-                ((keymapp binding)
-                 (god-mode-lookup-key-sequence nil key-string))
-                ((string-match-p " C-.$" key-string)
-                 (let ((len (length key-string)))
-                   (god-mode-lookup-command
-                    (concat (substring key-string 0 (- len 3))
-                            (substring key-string (- len 1) len)))))
-                ((string-match-p " C-S-.$" key-string)
-                 (let ((len (length key-string)))
-                   (god-mode-lookup-command
-                    (concat (substring key-string 0 (- len 5))
-                            (substring key-string (- len 1) len)))))
-                (t
-                 (error "God: Unknown key binding for `%s`"
-                          key-string))))))))
-
-(advice-add 'god-mode-lookup-command
-            :override '+god-mode-lookup-command-override)
+(global-set-key (kbd "M-R") 'raise-sexp)
+(global-set-key (kbd "M-D") 'delete-pair)
+(global-set-key (kbd "C-M-DEL") 'backward-kill-sexp)
+(global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
 
 
+(setq which-key-lighter nil
+      which-key-sort-order '+wk-prefix-then-des-order)
+
 (defun +wk-prefix-then-des-order (acons bcons)
   (let ((apref? (which-key--group-p (cdr acons)))
         (bpref? (which-key--group-p (cdr bcons))))
@@ -99,27 +59,19 @@
         apref?
       (which-key-description-order acons bcons))))
 
-(setq which-key-lighter nil
-      which-key-show-early-on-C-h t
-      which-key-add-column-padding 2
-      which-key-idle-secondary-delay 0
-      which-key-sort-order '+wk-prefix-then-des-order)
-
 (which-key-mode 1)
-
-(which-key-enable-god-mode-support)
 
 
 (setq enable-recursive-minibuffers t
       completion-styles '(orderless)
-      orderless-matching-styles '(orderless-literal)
+      orderless-matching-styles '(orderless-regexp)
       orderless-style-dispatchers '(+orderless-without-if-bang)
       selectrum-refine-candidates-function 'orderless-filter
       selectrum-highlight-candidates-function 'orderless-highlight-matches)
 
 (defun +orderless-without-if-bang (pattern _index _total)
-  (when (string-prefix-p "!" pattern)
-    `(orderless-without-literal . ,(substring pattern 1))))
+  (if (string-prefix-p "!" pattern)
+      `(orderless-without-literal . ,(substring pattern 1))))
 
 (selectrum-mode 1)
 
@@ -145,29 +97,6 @@
 (global-set-key (kbd "C-c C-j") 'imenu)
 
 
-(setq-default indent-tabs-mode nil)
-
-(show-paren-mode 1)
-(electric-pair-mode 1)
-
-(defun +self-insert-command ()
-  (interactive)
-  (self-insert-command 1))
-
-(defun +insert-pair (&optional arg)
-  (interactive "P")
-  (insert-pair (or arg 1)))
-
-(dolist (key '("(" "[" "{" "`" "'" "\""))
-  (define-key god-local-mode-map (kbd key) '+self-insert-command)
-  (global-set-key (kbd (concat "M-" key)) '+insert-pair))
-
-(global-set-key (kbd "M-R") 'raise-sexp)
-(global-set-key (kbd "M-D") 'delete-pair)
-(global-set-key (kbd "C-M-DEL") 'backward-kill-sexp)
-(global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
-
-
 (let ((file "~/.emacs.d/rsync/private.el"))
   (if (file-exists-p file) (load-file file)))
 
@@ -177,6 +106,8 @@
 (setq yas-alias-to-yas/prefix-p nil)
 
 (yas-global-mode 1)
+
+(setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
 
 (setq hippie-expand-try-functions-list
       '(yas-hippie-try-expand
@@ -192,25 +123,18 @@
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 
+(setq isearch-lazy-count t
+      disabled-command-function nil)
+
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "C-.") 'view-mode)
 (global-set-key (kbd "M-o") 'other-window)
-
-(define-key universal-argument-map (kbd "u") 'universal-argument-more)
-
-(setq isearch-lazy-count t)
-
-(define-key special-mode-map (kbd "n") 'next-line)
-(define-key special-mode-map (kbd "p") 'previous-line)
-(define-key special-mode-map (kbd "s") 'isearch-forward)
-(define-key special-mode-map (kbd "r") 'isearch-backward)
-(define-key special-mode-map (kbd "x") 'god-mode-self-insert)
 
 (ffap-bindings)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-      disabled-command-function nil
       auto-save-visited-interval 30
       vc-handled-backends '(Git)
       vc-make-backup-files t
@@ -230,7 +154,7 @@
 
 (with-eval-after-load 'dired
   (require 'dired-x)
-  (define-key dired-mode-map (kbd "v") '+dired-do-xdg-open))
+  (define-key dired-mode-map (kbd "V") '+dired-do-xdg-open))
 
 
 (defun rg ()
@@ -249,13 +173,10 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
-(setq python-shell-interpreter "python3"
-      org-babel-python-command "python3")
-
-
 (setq org-modules '(org-tempo)
       org-babel-load-languages
       '((emacs-lisp . t) (shell . t) (C . t) (python . t))
+      org-babel-python-command "python3"
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
