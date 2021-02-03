@@ -92,9 +92,9 @@
   (define-key c-mode-base-map (kbd "TAB")
     '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
-
 (global-set-key (kbd "C-c C-j") 'imenu)
+
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
 (let ((file "~/.emacs.d/rsync/private.el"))
@@ -123,12 +123,12 @@
 (global-set-key (kbd "M-/") 'hippie-expand)
 
 
-(setq isearch-lazy-count t
+(setq view-read-only t
+      isearch-lazy-count t
       disabled-command-function nil)
 
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "C-.") 'view-mode)
 (global-set-key (kbd "M-o") 'other-window)
 
 (ffap-bindings)
@@ -238,10 +238,6 @@
       pyim-autoselector nil
       pyim-enable-shortcode nil
       pyim-fuzzy-pinyin-alist nil)
-
-(defun +pyim-probe-god-mode-p () god-local-mode)
-
-(setq-default pyim-english-input-switch-functions '(+pyim-probe-god-mode-p))
 
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 
