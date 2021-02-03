@@ -13,7 +13,10 @@
                                   yasnippet
                                   wgrep
                                   eglot
+                                  auctex
+                                  cdlatex
                                   htmlize
+                                  pdf-tools
                                   pyim
                                   posframe))
 
@@ -173,7 +176,7 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
-(setq org-modules '(org-tempo)
+(setq org-modules '(org-tempo org-mouse)
       org-babel-load-languages
       '((emacs-lisp . t) (shell . t) (C . t) (python . t))
       org-babel-python-command "python3"
@@ -186,8 +189,19 @@
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
 
+(add-hook 'org-mode-hook 'org-cdlatex-mode)
+
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+
+
+(with-eval-after-load 'pdf-tools
+  (pdf-tools-install))
+
+(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
+
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+
 
 
 (defvar +text-scale-list
