@@ -8,14 +8,13 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
-                                  selectrum
                                   orderless
+                                  selectrum
                                   yasnippet
                                   wgrep
                                   eglot
-                                  auctex
-                                  cdlatex
                                   htmlize
+                                  cdlatex
                                   pdf-tools
                                   pyim
                                   posframe))
@@ -48,7 +47,6 @@
 
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
-(global-set-key (kbd "C-M-DEL") 'backward-kill-sexp)
 (global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
 
 
@@ -106,11 +104,14 @@
 (setq bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
 
-(setq yas-alias-to-yas/prefix-p nil)
+(setq yas-alias-to-yas/prefix-p nil
+      yas-prompt-functions '(yas-completing-prompt))
 
 (yas-global-mode 1)
 
 (setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
+
+(global-set-key (kbd "C-x y") 'yas-insert-snippet)
 
 (setq hippie-expand-try-functions-list
       '(yas-hippie-try-expand
@@ -189,6 +190,8 @@
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
 
+(provide 'texmathp)
+(defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
 (with-eval-after-load 'org
@@ -201,7 +204,6 @@
 (autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
 
 (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
-
 
 
 (defvar +text-scale-list
