@@ -2,4 +2,4 @@
 # name: newpage
 # key: <np
 # --
-#+latex: newpage
+#+latex: \newpage

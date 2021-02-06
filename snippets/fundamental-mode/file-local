@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: file-local
+# key: -*-
+# --
+`(if (derived-mode-p 'emacs-lisp-mode) ";; " comment-start)`-*- ${1:mode}: ${2:config} -*-`comment-end`

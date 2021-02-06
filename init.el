@@ -101,7 +101,9 @@
 (let ((file "~/.emacs.d/rsync/private.el"))
   (if (file-exists-p file) (load-file file)))
 
-(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks")
+(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks"
+      org-default-notes-file "~/.emacs.d/rsync/notes.org"
+      org-capture-bookmark nil)
 
 
 (setq yas-alias-to-yas/prefix-p nil
@@ -190,12 +192,33 @@
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
 
+
+(with-eval-after-load 'org
+  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+
 (provide 'texmathp)
 (defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
-(with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+
+(defun +project-agenda ()
+  (interactive)
+  (require 'project)
+  (let* ((root (project-root (project-current t)))
+         (agenda (expand-file-name "agenda.txt" root)))
+    (setq org-directory root
+          org-agenda-files (if (file-exists-p agenda)
+                               agenda (list root))))
+  (call-interactively 'org-agenda))
+
+(define-key project-prefix-map (kbd "a") '+project-agenda)
+
+(setq project-switch-commands
+      '((project-find-file "Find File")
+        (project-dired "Dired")
+        (project-shell "Shell")
+        (project-vc-dir "VC Dir")
+        (+project-agenda "Agenda")))
 
 
 (with-eval-after-load 'pdf-tools
