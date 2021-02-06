@@ -101,9 +101,7 @@
 (let ((file "~/.emacs.d/rsync/private.el"))
   (if (file-exists-p file) (load-file file)))
 
-(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks"
-      org-default-notes-file "~/.emacs.d/rsync/notes.org"
-      org-capture-bookmark nil)
+(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks")
 
 
 (setq yas-alias-to-yas/prefix-p nil
@@ -187,11 +185,13 @@
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
+      org-use-speed-commands t
+      org-id-track-globally nil
+      org-attach-method 'lns
       org-link-descriptive nil
       org-link-frame-setup '((file . find-file))
       org-src-preserve-indentation t
       org-src-window-setup 'current-window)
-
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
@@ -199,6 +199,25 @@
 (provide 'texmathp)
 (defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
+
+
+(setq org-capture-bookmark nil
+      org-default-notes-file "~/.emacs.d/rsync/notes.org")
+
+(defvar +org-global-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "a") 'org-agenda)
+    (define-key map (kbd "c") 'org-capture)
+    (define-key map (kbd ".") 'org-time-stamp)
+    (define-key map (kbd "w") 'org-store-link)
+    (define-key map (kbd "l") 'org-insert-link-global)
+    (define-key map (kbd "o") 'org-open-at-point-global)
+    (define-key map (kbd "n") 'org-next-link)
+    (define-key map (kbd "p") 'org-previous-link)
+    (define-key map (kbd "g") 'org-mark-ring-goto)
+    map))
+
+(global-set-key (kbd "C-x C-a") +org-global-map)
 
 
 (defun +project-agenda ()

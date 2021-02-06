@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: lambda
+# key: lam
+# --
+(lambda (${1:arg}) ${2:(interactive${3: "P"})}$0)
