@@ -8,10 +8,9 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
-                                  orderless
-                                  selectrum
                                   yasnippet
-                                  wgrep
+                                  helm
+                                  wgrep-helm
                                   eglot
                                   htmlize
                                   cdlatex
@@ -51,6 +50,7 @@
 
 
 (setq which-key-lighter nil
+      which-key-idle-secondary-delay 0
       which-key-sort-order '+wk-prefix-then-des-order)
 
 (defun +wk-prefix-then-des-order (acons bcons)
@@ -64,19 +64,40 @@
 
 
 (setq enable-recursive-minibuffers t
-      completion-styles '(orderless)
-      orderless-matching-styles '(orderless-regexp)
-      orderless-style-dispatchers '(+orderless-without-if-bang)
-      selectrum-refine-candidates-function 'orderless-filter
-      selectrum-highlight-candidates-function 'orderless-highlight-matches)
+      completion-styles '(helm)
+      helm-completion-style 'helm
+      helm-completion-mode-string nil)
 
-(defun +orderless-without-if-bang (pattern _index _total)
-  (if (string-prefix-p "!" pattern)
-      `(orderless-without-literal . ,(substring pattern 1))))
+(setq helm-allow-mouse t
+      helm-turn-on-show-completion nil
+      helm-buffer-max-length 30
+      helm-buffer-skip-remote-checking t
+      helm-occur-use-ioccur-style-keys t
+      helm-grep-ag-command "rg --color=always -S --no-heading -n %s %s %s"
+      helm-ff-guess-ffap-filenames t
+      helm-for-files-preferred-list
+      '(helm-source-bookmarks
+        helm-source-recentf
+        helm-source-files-in-current-dir)
+      helm-bookmark-default-filtered-sources
+      '(helm-source-bookmark-files&dirs
+        helm-source-bookmark-helm-find-files
+        helm-source-bookmark-uncategorized
+        helm-source-bookmark-set))
 
-(selectrum-mode 1)
+(helm-mode 1)
 
-(global-set-key (kbd "C-x C-z") 'selectrum-repeat)
+(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(global-set-key (kbd "C-x b") 'helm-buffers-list)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
+(global-set-key (kbd "C-x r i") 'helm-register)
+(global-set-key (kbd "C-x r b") 'helm-filtered-bookmarks)
+
+(define-key helm-command-map (kbd "l") 'helm-locate-library)
+
+(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
+(define-key comint-mode-map (kbd "M-s f") 'helm-comint-prompts)
 
 
 (defun +tab-completion-filter (command)
@@ -92,8 +113,6 @@
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
     '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
-
-(global-set-key (kbd "C-c C-j") 'imenu)
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
@@ -113,19 +132,6 @@
 
 (global-set-key (kbd "C-x y") 'yas-insert-snippet)
 
-(setq hippie-expand-try-functions-list
-      '(yas-hippie-try-expand
-        try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-complete-lisp-symbol-partially
-        try-complete-lisp-symbol
-        try-expand-line
-        try-expand-line-all-buffers))
-
-(global-set-key (kbd "M-/") 'hippie-expand)
-
 
 (setq view-read-only t
       isearch-lazy-count t
@@ -134,8 +140,6 @@
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
 (global-set-key (kbd "M-o") 'other-window)
-
-(ffap-bindings)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -149,16 +153,6 @@
 
 
 (setq dired-listing-switches "-alh")
-
-(defun +dired-do-xdg-open ()
-  (interactive)
-  (dolist (file (dired-get-marked-files))
-    (call-process-shell-command
-     (concat "xdg-open " file))))
-
-(with-eval-after-load 'dired
-  (require 'dired-x)
-  (define-key dired-mode-map (kbd "V") '+dired-do-xdg-open))
 
 
 (defun rg ()
@@ -177,10 +171,34 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
+(setq eshell-aliases-file "~/.emacs.d/rsync/alias"
+      eshell-modules-list
+      '(eshell-alias
+        eshell-basic
+        eshell-cmpl
+        eshell-dirs
+        eshell-glob
+        eshell-hist
+        eshell-ls
+        eshell-pred
+        eshell-prompt
+        eshell-tramp
+        eshell-unix)
+      eshell-cd-on-directory nil)
+
+(with-eval-after-load 'em-hist
+  (define-key eshell-hist-mode-map (kbd "M-r") 'helm-eshell-history)
+  (define-key eshell-hist-mode-map (kbd "M-s") nil)
+  (define-key eshell-hist-mode-map (kbd "M-s f") 'helm-eshell-prompts))
+
+
+(setq python-guess-indent nil
+      org-babel-python-command "python3")
+
+
 (setq org-modules '(org-tempo org-mouse)
       org-babel-load-languages
       '((emacs-lisp . t) (shell . t) (C . t) (python . t))
-      org-babel-python-command "python3"
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
@@ -190,7 +208,6 @@
       org-attach-method 'lns
       org-link-descriptive nil
       org-link-frame-setup '((file . find-file))
-      org-src-preserve-indentation t
       org-src-window-setup 'current-window)
 
 (with-eval-after-load 'org
@@ -232,12 +249,7 @@
 
 (define-key project-prefix-map (kbd "a") '+project-agenda)
 
-(setq project-switch-commands
-      '((project-find-file "Find File")
-        (project-dired "Dired")
-        (project-shell "Shell")
-        (project-vc-dir "VC Dir")
-        (+project-agenda "Agenda")))
+(add-to-list 'project-switch-commands '(+project-agenda "Agenda"))
 
 
 (with-eval-after-load 'pdf-tools
