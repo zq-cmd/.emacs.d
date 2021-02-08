@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: ssh
-# key: ssh
-# --
-ssh root@`+yas-ip`

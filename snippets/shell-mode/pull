@@ -1,5 +1,0 @@
-# -*- mode: snippet -*-
-# name: pull
-# key: pull
-# --
-rsync -rvz root@`+yas-ip`:~/emacs/rsync ~/.emacs.d
