@@ -73,15 +73,14 @@
       helm-buffer-max-length 30
       helm-buffer-skip-remote-checking t
       helm-occur-use-ioccur-style-keys t
-      helm-grep-ag-command "rg --color=always -S --no-heading -n %s %s %s"
+      helm-grep-ag-command "rg --no-heading %s %s %s"
       helm-ff-guess-ffap-filenames t
       helm-for-files-preferred-list
       '(helm-source-bookmarks
-        helm-source-recentf
         helm-source-files-in-current-dir)
       helm-bookmark-default-filtered-sources
-      '(helm-source-bookmark-files&dirs
-        helm-source-bookmark-helm-find-files
+      '(helm-source-bookmark-helm-find-files
+        helm-source-bookmark-files&dirs
         helm-source-bookmark-uncategorized
         helm-source-bookmark-set))
 
@@ -94,10 +93,9 @@
 (global-set-key (kbd "C-x r i") 'helm-register)
 (global-set-key (kbd "C-x r b") 'helm-filtered-bookmarks)
 
+(define-key helm-command-map (kbd "o") 'helm-occur)
+(define-key helm-command-map (kbd "g") 'helm-do-grep-ag)
 (define-key helm-command-map (kbd "l") 'helm-locate-library)
-
-(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
-(define-key comint-mode-map (kbd "M-s f") 'helm-comint-prompts)
 
 
 (defun +tab-completion-filter (command)
@@ -171,6 +169,9 @@
       ediff-split-window-function 'split-window-horizontally)
 
 
+(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
+(define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
+
 (setq eshell-aliases-file "~/.emacs.d/rsync/alias"
       eshell-modules-list
       '(eshell-alias
@@ -187,9 +188,9 @@
       eshell-cd-on-directory nil)
 
 (with-eval-after-load 'em-hist
-  (define-key eshell-hist-mode-map (kbd "M-r") 'helm-eshell-history)
   (define-key eshell-hist-mode-map (kbd "M-s") nil)
-  (define-key eshell-hist-mode-map (kbd "M-s f") 'helm-eshell-prompts))
+  (define-key eshell-hist-mode-map (kbd "M-r") 'helm-eshell-history)
+  (define-key eshell-hist-mode-map (kbd "C-c C-j") 'helm-eshell-prompts))
 
 
 (setq python-guess-indent nil
