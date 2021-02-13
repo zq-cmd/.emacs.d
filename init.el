@@ -92,7 +92,7 @@
 (global-set-key (kbd "M-y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-x b") 'helm-buffers-list)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-x r i") 'helm-register)
+(global-set-key (kbd "C-x r g") 'helm-register)
 (global-set-key (kbd "C-x r b") 'helm-filtered-bookmarks)
 
 (define-key helm-command-map (kbd "o") 'helm-occur)
@@ -117,10 +117,10 @@
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
-(let ((file "~/.emacs.d/rsync/private.el"))
+(let ((file "~/sync/emacs/private.el"))
   (if (file-exists-p file) (load-file file)))
 
-(setq bookmark-default-file "~/.emacs.d/rsync/bookmarks")
+(setq bookmark-default-file "~/sync/emacs/bookmarks")
 
 
 (setq yas-alias-to-yas/prefix-p nil
@@ -174,8 +174,7 @@
 (define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
 (define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
 
-(setq eshell-aliases-file "~/.emacs.d/rsync/alias"
-      eshell-modules-list
+(setq eshell-modules-list
       '(eshell-alias
         eshell-basic
         eshell-cmpl
@@ -187,6 +186,7 @@
         eshell-prompt
         eshell-tramp
         eshell-unix)
+      eshell-aliases-file "~/sync/emacs/alias"
       eshell-cd-on-directory nil)
 
 (with-eval-after-load 'em-hist
@@ -199,9 +199,9 @@
       org-babel-python-command "python3")
 
 
-(setq org-modules '(org-tempo org-mouse)
+(setq org-modules '(org-tempo org-mouse ol-eshell)
       org-babel-load-languages
-      '((emacs-lisp . t) (shell . t) (C . t) (python . t))
+      '((emacs-lisp . t) (shell . t) (eshell . t) (C . t) (python . t))
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
@@ -222,7 +222,7 @@
 
 
 (setq org-capture-bookmark nil
-      org-default-notes-file "~/.emacs.d/rsync/notes.org")
+      org-default-notes-file "~/sync/emacs/notes.org")
 
 (defvar +org-global-map
   (let ((map (make-sparse-keymap)))
@@ -311,6 +311,12 @@
       pyim-autoselector nil
       pyim-enable-shortcode nil
       pyim-fuzzy-pinyin-alist nil)
+
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq-local pyim-english-input-switch-functions
+                        '(pyim-probe-org-speed-commands
+                          pyim-probe-org-structure-template))))
 
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 

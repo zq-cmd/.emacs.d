@@ -1,7 +1,6 @@
 #*
 .#*
 *.elc
-rsync
 auto-save-list
 elpa
 url
@@ -12,4 +11,3 @@ pyim
 projects
 package-quickstart.el
 custom.el
-recentf
