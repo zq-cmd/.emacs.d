@@ -8,9 +8,9 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
-                                  yasnippet
-                                  helm
+                                  helm-ls-git
                                   wgrep-helm
+                                  magit
                                   eglot
                                   htmlize
                                   cdlatex
@@ -31,6 +31,8 @@
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
+(winner-mode 1)
+
 
 (setq-default indent-tabs-mode nil)
 
@@ -50,96 +52,21 @@
 
 
 (setq which-key-lighter nil
+      which-key-prefix-prefix nil
+      which-key-replacement-alist nil
       which-key-idle-secondary-delay 0
-      which-key-sort-order '+wk-prefix-then-des-order)
-
-(defun +wk-prefix-then-des-order (acons bcons)
-  (let ((apref? (which-key--group-p (cdr acons)))
-        (bpref? (which-key--group-p (cdr bcons))))
-    (if (xor apref? bpref?)
-        apref?
-      (which-key-description-order acons bcons))))
+      which-key-sort-order 'which-key-description-order)
 
 (which-key-mode 1)
-
-
-(setq enable-recursive-minibuffers t
-      completion-styles '(helm)
-      helm-completion-style 'helm
-      helm-completion-mode-string nil)
-
-(setq helm-allow-mouse t
-      helm-turn-on-show-completion nil
-      helm-buffer-max-length 30
-      helm-buffer-skip-remote-checking t
-      helm-occur-use-ioccur-style-keys t
-      helm-grep-ag-command "rg --no-heading %s %s %s"
-      helm-ff-guess-ffap-filenames t
-      helm-for-files-preferred-list
-      '(helm-source-bookmarks
-        helm-source-files-in-current-dir)
-      helm-bookmark-default-filtered-sources
-      '(helm-source-bookmark-helm-find-files
-        helm-source-bookmark-files&dirs
-        helm-source-bookmark-uncategorized
-        helm-source-bookmark-set))
-
-(helm-mode 1)
-
-(remove-hook 'helm-cleanup-hook 'helm-handle-winner-boring-buffers)
-
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-x b") 'helm-buffers-list)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-x r g") 'helm-register)
-(global-set-key (kbd "C-x r b") 'helm-filtered-bookmarks)
-
-(define-key helm-command-map (kbd "o") 'helm-occur)
-(define-key helm-command-map (kbd "g") 'helm-do-grep-ag)
-(define-key helm-command-map (kbd "l") 'helm-locate-library)
-
-
-(defun +tab-completion-filter (command)
-  (if (or (use-region-p)
-          (<= (current-column)
-              (current-indentation)))
-      command
-    'completion-at-point))
-
-(define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
-
-(with-eval-after-load 'cc-mode
-  (define-key c-mode-base-map (kbd "TAB")
-    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
-
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
 (let ((file "~/sync/emacs/private.el"))
   (if (file-exists-p file) (load-file file)))
 
-(setq bookmark-default-file "~/sync/emacs/bookmarks")
+(setq abbrev-file-name "~/sync/emacs/abbrevs"
+      bookmark-default-file "~/sync/emacs/bookmarks")
 
-
-(setq yas-alias-to-yas/prefix-p nil
-      yas-prompt-functions '(yas-completing-prompt))
-
-(yas-global-mode 1)
-
-(setcdr (assq 'yas-minor-mode minor-mode-alist) '(""))
-
-(global-set-key (kbd "C-x y") 'yas-insert-snippet)
-
-
-(setq view-read-only t
-      isearch-lazy-count t
-      disabled-command-function nil)
-
-(global-set-key (kbd "C-z") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-o") 'other-window)
+(setq-default abbrev-mode t)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -151,57 +78,102 @@
 
 (auto-save-visited-mode 1)
 
+(setq recentf-max-saved-items 100)
+
+(recentf-mode 1)
+
+
+(setq view-read-only t
+      disabled-command-function nil)
+
+(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-o") 'other-window)
+
+
+(setq completion-styles '(helm)
+      helm-completion-style 'helm
+      helm-turn-on-show-completion nil
+      helm-completion-mode-string nil)
+
+(setq helm-allow-mouse t
+      helm-buffer-max-length 30
+      helm-buffer-skip-remote-checking t
+      helm-mini-default-sources
+      '(helm-source-buffers-list
+        helm-source-recentf
+        helm-source-bookmarks
+        helm-source-buffers-list)
+      helm-occur-use-ioccur-style-keys t
+      helm-grep-ag-command "rg --no-heading %s %s %s"
+      helm-ff-preferred-shell-mode 'shell-mode
+      helm-ff-guess-ffap-filenames t
+      helm-for-files-preferred-list
+      '(helm-source-files-in-current-dir)
+      helm-ls-git-status-command 'magit-status-setup-buffer)
+
+(helm-mode 1)
+
+
+(global-set-key (kbd "M-y") 'helm-show-kill-ring)
+(global-set-key (kbd "M-x") 'helm-M-x)
+(global-set-key (kbd "s-b") 'helm-mini)
+(global-set-key (kbd "s-f") 'helm-find-files)
+(global-set-key (kbd "C-c z") 'helm-resume)
+(global-set-key (kbd "C-c f") 'helm-for-files)
+(global-set-key (kbd "C-c p") 'helm-browse-project)
+(global-set-key (kbd "C-c g") 'helm-do-grep-ag)
+(global-set-key (kbd "C-c o") 'helm-occur)
+(global-set-key (kbd "C-c i") 'helm-imenu)
+(global-set-key (kbd "C-c t") 'helm-etags-select)
+(global-set-key (kbd "C-c r") 'helm-register)
+(global-set-key (kbd "C-c m") 'helm-all-mark-rings)
+
+(define-key help-map (kbd "o") 'helm-apropos)
+(define-key help-map (kbd "a") 'helm-locate-library)
+
+(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
+(define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
+
+(ffap-bindings)
+
+(defmacro +menu-item-key-binding (key)
+  `'(menu-item "" nil :filter
+               (lambda (_) (key-binding (kbd ,key)))))
+
+(global-set-key (kbd "s-g") (+menu-item-key-binding "C-g"))
+
+(defun +tab-completion-filter (command)
+  (if (or (use-region-p)
+          (<= (current-column)
+              (current-indentation)))
+      command
+    'completion-at-point))
+
+(define-key prog-mode-map (kbd "TAB")
+  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
+
 
 (setq dired-listing-switches "-alh")
 
-
-(defun rg ()
-  (interactive)
-  (require 'grep)
-  (grep--save-buffers)
-  (compilation-start
-   (read-shell-command "command: " "rg --no-heading " 'grep-history)
-   'grep-mode))
+(setq ediff-window-setup-function 'ediff-setup-windows-plain
+      ediff-split-window-function 'split-window-horizontally)
 
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
-
-(setq ediff-window-setup-function 'ediff-setup-windows-plain
-      ediff-split-window-function 'split-window-horizontally)
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
-(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
-(define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
+(setq magit-define-global-key-bindings nil)
 
-(setq eshell-modules-list
-      '(eshell-alias
-        eshell-basic
-        eshell-cmpl
-        eshell-dirs
-        eshell-glob
-        eshell-hist
-        eshell-ls
-        eshell-pred
-        eshell-prompt
-        eshell-tramp
-        eshell-unix)
-      eshell-aliases-file "~/sync/emacs/alias"
-      eshell-cd-on-directory nil)
-
-(with-eval-after-load 'em-hist
-  (define-key eshell-hist-mode-map (kbd "M-s") nil)
-  (define-key eshell-hist-mode-map (kbd "M-r") 'helm-eshell-history)
-  (define-key eshell-hist-mode-map (kbd "C-c C-j") 'helm-eshell-prompts))
+(global-set-key (kbd "C-c v") 'magit-status)
 
 
-(setq python-guess-indent nil
-      org-babel-python-command "python3")
-
-
-(setq org-modules '(org-tempo org-mouse ol-eshell)
+(setq org-modules '(org-tempo org-mouse)
       org-babel-load-languages
-      '((emacs-lisp . t) (shell . t) (eshell . t) (C . t) (python . t))
+      '((emacs-lisp . t) (shell . t) (python . t))
+      org-babel-python-command "python3"
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
@@ -219,40 +191,6 @@
 (provide 'texmathp)
 (defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
-
-
-(setq org-capture-bookmark nil
-      org-default-notes-file "~/sync/emacs/notes.org")
-
-(defvar +org-global-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map (kbd "a") 'org-agenda)
-    (define-key map (kbd "c") 'org-capture)
-    (define-key map (kbd ".") 'org-time-stamp)
-    (define-key map (kbd "w") 'org-store-link)
-    (define-key map (kbd "l") 'org-insert-link-global)
-    (define-key map (kbd "o") 'org-open-at-point-global)
-    (define-key map (kbd "n") 'org-next-link)
-    (define-key map (kbd "p") 'org-previous-link)
-    (define-key map (kbd "g") 'org-mark-ring-goto)
-    map))
-
-(global-set-key (kbd "C-x C-a") +org-global-map)
-
-
-(defun +project-agenda ()
-  (interactive)
-  (require 'project)
-  (let* ((root (project-root (project-current t)))
-         (agenda (expand-file-name "agenda.txt" root)))
-    (setq org-directory root
-          org-agenda-files (if (file-exists-p agenda)
-                               agenda (list root))))
-  (call-interactively 'org-agenda))
-
-(define-key project-prefix-map (kbd "a") '+project-agenda)
-
-(add-to-list 'project-switch-commands '(+project-agenda "Agenda"))
 
 
 (with-eval-after-load 'pdf-tools
