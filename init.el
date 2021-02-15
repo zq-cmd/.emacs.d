@@ -70,11 +70,13 @@
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-      auto-save-visited-interval 30
+      auto-revert-check-vc-info t
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
       backup-directory-alist '(("." . "~/.bak")))
+
+(setq auto-save-visited-interval 30)
 
 (auto-save-visited-mode 1)
 
@@ -130,11 +132,11 @@
 (global-set-key (kbd "C-c m") 'helm-all-mark-rings)
 
 (define-key help-map (kbd "o") 'helm-apropos)
-(define-key help-map (kbd "a") 'helm-locate-library)
 
 (define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
 (define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
 
+
 (ffap-bindings)
 
 (defmacro +menu-item-key-binding (key)
@@ -164,8 +166,8 @@
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
-
-(setq magit-define-global-key-bindings nil)
+(setq transient-save-history nil
+      magit-define-global-key-bindings nil)
 
 (global-set-key (kbd "C-c v") 'magit-status)
 
