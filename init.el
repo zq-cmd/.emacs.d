@@ -8,9 +8,8 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
-                                  helm-ls-git
+                                  helm
                                   wgrep-helm
-                                  magit
                                   eglot
                                   htmlize
                                   cdlatex
@@ -27,6 +26,8 @@
 
 
 (setq inhibit-splash-screen t)
+
+(load-theme 'tango)
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
@@ -61,7 +62,6 @@
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-      auto-revert-check-vc-info t
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
@@ -105,24 +105,22 @@
       helm-ff-preferred-shell-mode 'shell-mode
       helm-ff-guess-ffap-filenames t
       helm-for-files-preferred-list
-      '(helm-source-files-in-current-dir)
-      helm-ls-git-status-command 'magit-status-setup-buffer)
+      '(helm-source-files-in-current-dir))
 
 (helm-mode 1)
 
 
-(global-set-key (kbd "M-y") 'helm-show-kill-ring)
 (global-set-key (kbd "M-x") 'helm-M-x)
 (global-set-key (kbd "C-x b") 'helm-mini)
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-c z") 'helm-resume)
 (global-set-key (kbd "C-c f") 'helm-for-files)
-(global-set-key (kbd "C-c p") 'helm-browse-project)
 (global-set-key (kbd "C-c g") 'helm-do-grep-ag)
 (global-set-key (kbd "C-c o") 'helm-occur)
 (global-set-key (kbd "C-c i") 'helm-imenu)
 (global-set-key (kbd "C-c t") 'helm-etags-select)
 (global-set-key (kbd "C-c r") 'helm-register)
+(global-set-key (kbd "C-c y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-c m") 'helm-all-mark-rings)
 
 (define-key help-map (kbd "o") 'helm-apropos)
@@ -131,6 +129,17 @@
 (define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
 
 (ffap-bindings)
+
+(lookup-key project-prefix-map (vector ?c))
+
+(defun +project-switch-project ()
+  (interactive)
+  (let ((default-directory (project-prompt-project-dir))
+        (command (lookup-key project-prefix-map
+                             (vector (read-char-exclusive)))))
+    (if command (call-interactively command))))
+
+(define-key project-prefix-map (kbd "p") '+project-switch-project)
 
 
 (defun +tab-completion-filter (command)
@@ -153,11 +162,6 @@
       wgrep-change-readonly-file t)
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
-
-(setq transient-save-history nil
-      magit-define-global-key-bindings nil)
-
-(global-set-key (kbd "C-c v") 'magit-status)
 
 
 (setq org-modules '(org-tempo org-mouse)
