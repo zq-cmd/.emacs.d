@@ -2,6 +2,7 @@
 .#*
 *.elc
 auto-save-list
+bookmarks
 custom.el
 elpa
 games

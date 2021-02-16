@@ -60,15 +60,6 @@
 (which-key-mode 1)
 
 
-(let ((file "~/sync/emacs/private.el"))
-  (if (file-exists-p file) (load-file file)))
-
-(setq abbrev-file-name "~/sync/emacs/abbrevs"
-      bookmark-default-file "~/sync/emacs/bookmarks")
-
-(setq-default abbrev-mode t)
-
-
 (setq confirm-kill-emacs 'y-or-n-p
       auto-revert-check-vc-info t
       vc-handled-backends '(Git)
@@ -83,6 +74,8 @@
 (setq recentf-max-saved-items 100)
 
 (recentf-mode 1)
+
+(setq-default abbrev-mode t)
 
 
 (setq view-read-only t
@@ -99,13 +92,14 @@
       helm-completion-mode-string nil)
 
 (setq helm-allow-mouse t
+      helm-inherit-input-method nil
       helm-buffer-max-length 30
       helm-buffer-skip-remote-checking t
       helm-mini-default-sources
       '(helm-source-buffers-list
         helm-source-recentf
         helm-source-bookmarks
-        helm-source-buffers-list)
+        helm-source-buffer-not-found)
       helm-occur-use-ioccur-style-keys t
       helm-grep-ag-command "rg --no-heading %s %s %s"
       helm-ff-preferred-shell-mode 'shell-mode
@@ -119,8 +113,8 @@
 
 (global-set-key (kbd "M-y") 'helm-show-kill-ring)
 (global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "s-b") 'helm-mini)
-(global-set-key (kbd "s-f") 'helm-find-files)
+(global-set-key (kbd "C-x b") 'helm-mini)
+(global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-c z") 'helm-resume)
 (global-set-key (kbd "C-c f") 'helm-for-files)
 (global-set-key (kbd "C-c p") 'helm-browse-project)
@@ -136,15 +130,9 @@
 (define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
 (define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
 
-
 (ffap-bindings)
 
-(defmacro +menu-item-key-binding (key)
-  `'(menu-item "" nil :filter
-               (lambda (_) (key-binding (kbd ,key)))))
-
-(global-set-key (kbd "s-g") (+menu-item-key-binding "C-g"))
-
+
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
           (<= (current-column)
