@@ -111,13 +111,14 @@
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-c z") 'helm-resume)
 (global-set-key (kbd "C-c f") 'helm-for-files)
-(global-set-key (kbd "C-c g") 'helm-do-grep-ag)
+(global-set-key (kbd "C-c g") 'helm-grep-do-git-grep)
 (global-set-key (kbd "C-c o") 'helm-occur)
 (global-set-key (kbd "C-c i") 'helm-imenu)
 (global-set-key (kbd "C-c t") 'helm-etags-select)
 (global-set-key (kbd "C-c r") 'helm-register)
 (global-set-key (kbd "C-c y") 'helm-show-kill-ring)
 (global-set-key (kbd "C-c m") 'helm-all-mark-rings)
+(global-set-key (kbd "C-c C-x") 'helm-run-external-command)
 
 (define-key help-map (kbd "o") 'helm-apropos)
 
@@ -146,6 +147,10 @@
 
 (define-key prog-mode-map (kbd "TAB")
   '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
+
+(with-eval-after-load 'cc-mode
+  (define-key c-mode-base-map (kbd "TAB")
+    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 
 (setq dired-listing-switches "-alh")
@@ -182,39 +187,6 @@
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
 
-(load (if (eq system-type 'windows-nt)
-          "~/.emacs.d/init-windows.el"
-        "~/.emacs.d/init-linux.el"))
-
-(defun +text-scale-set ()
-  (when (display-graphic-p)
-    (let ((scale (aref +text-scale-list +text-scale-index)))
-      (set-face-attribute
-       'default nil
-       :font (font-spec :name +text-en-name :size (car scale)))
-      (set-fontset-font
-       (frame-parameter nil 'font)
-       'han
-       (font-spec :name +text-zh-name :size (cdr scale))))))
-
-(+text-scale-set)
-
-(defun +text-scale-increase ()
-  (interactive)
-  (when (< +text-scale-index 6)
-    (setq +text-scale-index (1+ +text-scale-index))
-    (+text-scale-set)))
-
-(defun +text-scale-decrease ()
-  (interactive)
-  (when (> +text-scale-index 0)
-    (setq +text-scale-index (1- +text-scale-index))
-    (+text-scale-set)))
-
-(global-set-key (kbd "C-+") '+text-scale-increase)
-(global-set-key (kbd "C-_") '+text-scale-decrease)
-
-
 (setq default-input-method "pyim"
       posframe-mouse-banish nil
       pyim-page-tooltip 'posframe
@@ -232,10 +204,49 @@
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 
 (with-eval-after-load 'pyim
-  ;; fix zirjma
   (setcdr (last (car (last (assq 'ziranma-shuangpin pyim-schemes))))
-          '(("aj" "an") ("al" "ai") ("ak" "ao")
-            ("ez" "ei") ("ef" "en") ("ob" "ou")))
+          '(("aj" "an") ("al" "ai") ("ak" "ao") ("ez" "ei") ("ef" "en") ("ob" "ou")))
   (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
   (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
   (pyim-basedict-enable))
+
+
+(defvar +windowsp (eq system-type 'windows-nt))
+
+(defvar +text-en-name (if +windowsp "Consolas" "Ubuntu Mono"))
+(defvar +text-zh-name (if +windowsp "微软雅黑" "WenQuanYi Micro Hei Mono"))
+
+(defvar +text-scale-list
+  (if +windowsp
+      [(9.0 . 10.0) (11.5 . 11.0) (14.0 . 15.0) (16.0 . 18.0)]
+    [(9.0 . 9.0) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 16.5)]))
+
+(defvar +text-scale-index 2)
+
+(defun +text-scale-set ()
+  (when (display-graphic-p)
+    (let ((scale (aref +text-scale-list +text-scale-index)))
+      (set-face-attribute
+       'default nil
+       :font (font-spec :name +text-en-name :size (car scale)))
+      (set-fontset-font
+       (frame-parameter nil 'font)
+       'han
+       (font-spec :name +text-zh-name :size (cdr scale))))))
+
+(+text-scale-set)
+
+(defun +text-scale-increase ()
+  (interactive)
+  (when (< +text-scale-index 3)
+    (setq +text-scale-index (1+ +text-scale-index))
+    (+text-scale-set)))
+
+(defun +text-scale-decrease ()
+  (interactive)
+  (when (> +text-scale-index 0)
+    (setq +text-scale-index (1- +text-scale-index))
+    (+text-scale-set)))
+
+(global-set-key (kbd "C-+") '+text-scale-increase)
+(global-set-key (kbd "C-_") '+text-scale-decrease)
