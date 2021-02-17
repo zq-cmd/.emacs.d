@@ -24,6 +24,8 @@
     (package-install pkg)))
 
 
+(setq visible-bell t)
+
 (setq inhibit-splash-screen t)
 
 (load-theme 'tango)
@@ -218,10 +220,10 @@
 
 (defvar +text-scale-list
   (if +windowsp
-      [(9.0 . 10.0) (11.5 . 11.0) (14.0 . 15.0) (16.0 . 18.0)]
+      [(9.0 . 10.5) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 18.0)]
     [(9.0 . 9.0) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 16.5)]))
 
-(defvar +text-scale-index 2)
+(defvar +text-scale-index 1)
 
 (defun +text-scale-set ()
   (when (display-graphic-p)
