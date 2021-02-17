@@ -13,7 +13,6 @@
                                   eglot
                                   htmlize
                                   cdlatex
-                                  pdf-tools
                                   pyim
                                   posframe))
 
@@ -183,42 +182,26 @@
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
 
-(with-eval-after-load 'pdf-tools
-  (pdf-tools-install))
-
-(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
-
-(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
-
-
-(defvar +text-scale-list
-  [(9.0  . 9.0)
-   (10.0 . 10.5)
-   (11.5 . 12.0)
-   (12.5 . 13.5)
-   (14.0 . 15.0)
-   (15.0 . 15.0)
-   (16.0 . 16.5)
-   (18.0 . 18.0)])
-
-(defvar +text-scale-index 4)
+(load (if (eq system-type 'windows-nt)
+          "~/.emacs.d/init-windows.el"
+        "~/.emacs.d/init-linux.el"))
 
 (defun +text-scale-set ()
   (when (display-graphic-p)
     (let ((scale (aref +text-scale-list +text-scale-index)))
       (set-face-attribute
        'default nil
-       :font (font-spec :name "Ubuntu Mono" :size (car scale)))
+       :font (font-spec :name +text-en-name :size (car scale)))
       (set-fontset-font
        (frame-parameter nil 'font)
        'han
-       (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale))))))
+       (font-spec :name +text-zh-name :size (cdr scale))))))
 
 (+text-scale-set)
 
 (defun +text-scale-increase ()
   (interactive)
-  (when (< +text-scale-index 7)
+  (when (< +text-scale-index 6)
     (setq +text-scale-index (1+ +text-scale-index))
     (+text-scale-set)))
 
