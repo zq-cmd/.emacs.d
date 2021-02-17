@@ -40,13 +40,6 @@
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(defun +insert-pair (&optional arg)
-  (interactive "P")
-  (insert-pair (or arg 1)))
-
-(dolist (key '("(" "[" "{" "`" "'" "\""))
-  (global-set-key (kbd (concat "M-" key)) '+insert-pair))
-
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
 (global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
@@ -81,9 +74,13 @@
 (setq view-read-only t
       disabled-command-function nil)
 
-(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-z") 'view-mode)
 (global-set-key (kbd "C-?") 'undo-redo)
 (global-set-key (kbd "M-o") 'other-window)
+
+(with-eval-after-load 'view
+  (define-key view-mode-map "j" 'View-scroll-line-forward)
+  (define-key view-mode-map "k" 'View-scroll-line-backward))
 
 
 (setq completion-styles '(helm)
@@ -130,10 +127,9 @@
 
 (ffap-bindings)
 
-(lookup-key project-prefix-map (vector ?c))
-
 (defun +project-switch-project ()
   (interactive)
+  (require 'project)
   (let ((default-directory (project-prompt-project-dir))
         (command (lookup-key project-prefix-map
                              (vector (read-char-exclusive)))))
