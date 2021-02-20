@@ -91,6 +91,7 @@
 
 (setq helm-allow-mouse t
       helm-inherit-input-method nil
+      helm-grep-ag-command "rg --no-heading -S %s %s %s"
       helm-buffer-max-length 30
       helm-buffer-skip-remote-checking t
       helm-mini-default-sources
@@ -113,7 +114,7 @@
 (global-set-key (kbd "C-x C-f") 'helm-find-files)
 (global-set-key (kbd "C-c z") 'helm-resume)
 (global-set-key (kbd "C-c f") 'helm-for-files)
-(global-set-key (kbd "C-c g") 'helm-grep-do-git-grep)
+(global-set-key (kbd "C-c g") 'helm-do-grep-ag)
 (global-set-key (kbd "C-c o") 'helm-occur)
 (global-set-key (kbd "C-c i") 'helm-imenu)
 (global-set-key (kbd "C-c t") 'helm-etags-select)
@@ -206,8 +207,58 @@
 (advice-add 'pyim-punctuation-full-width-p :override 'ignore)
 
 (with-eval-after-load 'pyim
-  (setcdr (last (car (last (assq 'ziranma-shuangpin pyim-schemes))))
-          '(("aj" "an") ("al" "ai") ("ak" "ao") ("ez" "ei") ("ef" "en") ("ob" "ou")))
+  (pyim-scheme-add
+   '(ziranma-shuangpin
+     :document "自然码双拼方案。"
+     :class shuangpin
+     :first-chars "abcdefghijklmnopqrstuvwxyz"
+     :rest-chars "abcdefghijklmnopqrstuvwxyz"
+     :prefer-trigger-chars nil
+     :keymaps
+     (("a" "a" "a")
+      ("b" "b" "ou")
+      ("c" "c" "iao")
+      ("d" "d" "uang" "iang")
+      ("e" "e" "e")
+      ("f" "f" "en")
+      ("g" "g" "eng")
+      ("h" "h" "ang")
+      ("i" "ch" "i")
+      ("j" "j" "an")
+      ("k" "k" "ao")
+      ("l" "l" "ai")
+      ("m" "m" "ian")
+      ("n" "n" "in")
+      ("o" "o" "uo" "o")
+      ("p" "p" "un")
+      ("q" "q" "iu")
+      ("r" "r" "uan" "er")
+      ("s" "s" "iong" "ong")
+      ("t" "t" "ue" "ve")
+      ("u" "sh" "u")
+      ("v" "zh" "v" "ui")
+      ("w" "w" "ia" "ua")
+      ("x" "x" "ie")
+      ("y" "y" "uai" "ing")
+      ("z" "z" "ei")
+      ("aa" "a")
+      ("aj" "an")
+      ("ah" "ang")
+      ("ai" "ai")
+      ("ak" "ao")
+      ("al" "ai")
+      ("an" "an")
+      ("ao" "ao")
+      ("ee" "e")
+      ("ef" "en")
+      ("eg" "eng")
+      ("ei" "ei")
+      ("en" "en")
+      ("er" "er")
+      ("ez" "ei")
+      ("ob" "ou")
+      ("oo" "o")
+      ("ou" "ou"))))
   (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
   (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
   (pyim-basedict-enable))
