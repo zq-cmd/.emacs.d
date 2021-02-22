@@ -13,6 +13,7 @@
                                   eglot
                                   htmlize
                                   cdlatex
+                                  pdf-tools
                                   pyim
                                   posframe))
 
@@ -79,12 +80,15 @@
   (define-key view-mode-map "k" 'View-scroll-line-backward))
 
 
-(setq selectrum-refine-candidates-function '+selectrum-filter)
+(setq selectrum-display-style '(horizontal)
+      selectrum-refine-candidates-function '+selectrum-filter)
 
 (defun +selectrum-filter (query candidates)
-  (let ((regexp (string-join (mapcar 'regexp-quote (split-string query)) ".*")))
-    (seq-filter (lambda (candidate) (string-match-p regexp candidate))
-                candidates)))
+  (let ((regexp (string-join (split-string query) ".*")))
+    (condition-case error
+        (seq-filter (lambda (candidate) (string-match-p regexp candidate))
+                    candidates)
+      (invalid-regexp nil))))
 
 (selectrum-mode 1)
 
@@ -165,6 +169,14 @@
 (provide 'texmathp)
 (defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
+
+
+(with-eval-after-load 'pdf-tools
+  (pdf-tools-install))
+
+(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
+
+(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
 
 
 (setq default-input-method "pyim"
