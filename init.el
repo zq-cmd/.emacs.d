@@ -8,8 +8,8 @@
         ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
-                                  helm
-                                  wgrep-helm
+                                  selectrum
+                                  wgrep
                                   eglot
                                   htmlize
                                   cdlatex
@@ -33,7 +33,18 @@
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
-(winner-mode 1)
+
+(setq confirm-kill-emacs 'y-or-n-p
+      vc-handled-backends '(Git)
+      vc-make-backup-files t
+      version-control 'never
+      backup-directory-alist '(("." . "~/.bak")))
+
+(setq auto-save-visited-interval 30)
+
+(auto-save-visited-mode 1)
+
+(setq-default abbrev-mode t)
 
 
 (setq-default indent-tabs-mode nil)
@@ -55,80 +66,31 @@
 (which-key-mode 1)
 
 
-(setq confirm-kill-emacs 'y-or-n-p
-      vc-handled-backends '(Git)
-      vc-make-backup-files t
-      version-control 'never
-      backup-directory-alist '(("." . "~/.bak")))
-
-(setq auto-save-visited-interval 30)
-
-(auto-save-visited-mode 1)
-
-(setq recentf-max-saved-items 100)
-
-(recentf-mode 1)
-
-(setq-default abbrev-mode t)
-
-
 (setq view-read-only t
       disabled-command-function nil)
 
 (global-set-key (kbd "C-z") 'view-mode)
 (global-set-key (kbd "C-?") 'undo-redo)
 (global-set-key (kbd "M-o") 'other-window)
+(global-set-key (kbd "M-Z") 'zap-up-to-char)
 
 (with-eval-after-load 'view
   (define-key view-mode-map "j" 'View-scroll-line-forward)
   (define-key view-mode-map "k" 'View-scroll-line-backward))
 
 
-(setq completion-styles '(helm)
-      helm-completion-style 'helm
-      helm-turn-on-show-completion nil
-      helm-completion-mode-string nil)
+(setq selectrum-refine-candidates-function '+selectrum-filter)
 
-(setq helm-allow-mouse t
-      helm-inherit-input-method nil
-      helm-grep-ag-command "rg --no-heading -S %s %s %s"
-      helm-buffer-max-length 30
-      helm-buffer-skip-remote-checking t
-      helm-mini-default-sources
-      '(helm-source-buffers-list
-        helm-source-recentf
-        helm-source-bookmarks
-        helm-source-buffer-not-found)
-      helm-occur-use-ioccur-style-keys t
-      helm-grep-ag-command "rg --no-heading %s %s %s"
-      helm-ff-preferred-shell-mode 'shell-mode
-      helm-ff-guess-ffap-filenames t
-      helm-for-files-preferred-list
-      '(helm-source-files-in-current-dir))
+(defun +selectrum-filter (query candidates)
+  (let ((regexp (string-join (mapcar 'regexp-quote (split-string query)) ".*")))
+    (seq-filter (lambda (candidate) (string-match-p regexp candidate))
+                candidates)))
 
-(helm-mode 1)
+(selectrum-mode 1)
 
-
-(global-set-key (kbd "M-x") 'helm-M-x)
-(global-set-key (kbd "C-x b") 'helm-mini)
-(global-set-key (kbd "C-x C-f") 'helm-find-files)
-(global-set-key (kbd "C-c z") 'helm-resume)
-(global-set-key (kbd "C-c f") 'helm-for-files)
-(global-set-key (kbd "C-c g") 'helm-do-grep-ag)
-(global-set-key (kbd "C-c o") 'helm-occur)
-(global-set-key (kbd "C-c i") 'helm-imenu)
-(global-set-key (kbd "C-c t") 'helm-etags-select)
-(global-set-key (kbd "C-c r") 'helm-register)
-(global-set-key (kbd "C-c y") 'helm-show-kill-ring)
-(global-set-key (kbd "C-c m") 'helm-all-mark-rings)
-(global-set-key (kbd "C-c C-x") 'helm-run-external-command)
+(global-set-key (kbd "C-x C-z") 'selectrum-repeat)
 
-(define-key help-map (kbd "o") 'helm-apropos)
-
-(define-key comint-mode-map (kbd "M-r") 'helm-comint-input-ring)
-(define-key comint-mode-map (kbd "C-c C-j") 'helm-comint-prompts)
-
-(ffap-bindings)
+(global-set-key (kbd "C-c C-j") 'imenu)
 
 (defun +project-switch-project ()
   (interactive)
@@ -140,7 +102,6 @@
 
 (define-key project-prefix-map (kbd "p") '+project-switch-project)
 
-
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
           (<= (current-column)
@@ -158,8 +119,24 @@
 
 (setq dired-listing-switches "-alh")
 
+(defun +dired-do-xdg-open ()
+  (interactive)
+  (dolist (file (dired-get-marked-files))
+    (call-process-shell-command (concat "xdg-open " file))))
+
+(with-eval-after-load 'dired
+  (define-key dired-mode-map (kbd "V") '+dired-do-xdg-open))
+
 (setq ediff-window-setup-function 'ediff-setup-windows-plain
       ediff-split-window-function 'split-window-horizontally)
+
+(defun rg ()
+  (interactive)
+  (require 'grep)
+  (grep--save-buffers)
+  (compilation-start
+   (read-shell-command "command: " "rg --no-heading " 'grep-history)
+   'grep-mode))
 
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
