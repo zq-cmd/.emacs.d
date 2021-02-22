@@ -25,11 +25,17 @@
     (package-install pkg)))
 
 
+(defvar +graphicp (display-graphic-p))
+(defvar +windowsp (eq system-type 'windows-nt))
+
+
 (setq visible-bell t)
 
 (setq inhibit-splash-screen t)
 
-(load-theme 'tango)
+(if +graphicp
+    (load-theme 'tango)
+  (menu-bar-mode -1))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
@@ -176,16 +182,18 @@
 
 (autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
 
-(add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode))
+(unless +windowsp
+  (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode)))
 
 
 (setq default-input-method "pyim"
       posframe-mouse-banish nil
-      pyim-page-tooltip 'posframe
-      pyim-default-scheme 'ziranma-shuangpin
-      pyim-autoselector nil
+      pyim-page-tooltip (if +graphicp 'posframe 'popup))
+
+(setq pyim-autoselector nil
       pyim-enable-shortcode nil
-      pyim-fuzzy-pinyin-alist nil)
+      pyim-fuzzy-pinyin-alist nil
+      pyim-default-scheme 'ziranma-shuangpin)
 
 (add-hook 'org-mode-hook
           (lambda ()
@@ -253,8 +261,6 @@
   (pyim-basedict-enable))
 
 
-(defvar +windowsp (eq system-type 'windows-nt))
-
 (defvar +text-en-name (if +windowsp "Consolas" "Ubuntu Mono"))
 (defvar +text-zh-name (if +windowsp "微软雅黑" "WenQuanYi Micro Hei Mono"))
 
@@ -266,7 +272,7 @@
 (defvar +text-scale-index 1)
 
 (defun +text-scale-set ()
-  (when (display-graphic-p)
+  (when +graphicp
     (let ((scale (aref +text-scale-list +text-scale-index)))
       (set-face-attribute
        'default nil
