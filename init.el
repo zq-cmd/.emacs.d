@@ -10,11 +10,10 @@
 (setq package-selected-packages '(which-key
                                   selectrum
                                   wgrep
-                                  eglot
+                                  inf-ruby
                                   htmlize
                                   cdlatex
                                   pdf-tools
-                                  inf-ruby
                                   pyim
                                   posframe))
 
@@ -151,13 +150,8 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
-
 
 (setq org-modules '(org-tempo org-mouse)
-      org-babel-load-languages
-      '((emacs-lisp . t) (shell . t) (python . t))
-      org-babel-python-command "python3"
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
