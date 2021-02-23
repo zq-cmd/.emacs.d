@@ -14,6 +14,7 @@
                                   htmlize
                                   cdlatex
                                   pdf-tools
+                                  inf-ruby
                                   pyim
                                   posframe))
 
@@ -86,8 +87,7 @@
   (define-key view-mode-map "k" 'View-scroll-line-backward))
 
 
-(setq selectrum-display-style '(horizontal)
-      selectrum-refine-candidates-function '+selectrum-filter)
+(setq selectrum-refine-candidates-function '+selectrum-filter)
 
 (defun +selectrum-filter (query candidates)
   (let ((regexp (string-join (split-string query) ".*")))
