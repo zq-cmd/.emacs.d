@@ -9,13 +9,12 @@
 
 (setq package-selected-packages '(which-key
                                   selectrum
+                                  key-chord
+                                  ace-window
                                   wgrep
                                   inf-ruby
                                   htmlize
-                                  cdlatex
-                                  pdf-tools
-                                  pyim
-                                  posframe))
+                                  cdlatex))
 
 (require 'package)
 
@@ -25,15 +24,11 @@
     (package-install pkg)))
 
 
-(defvar +graphicp (display-graphic-p))
-(defvar +windowsp (eq system-type 'windows-nt))
-
-
 (setq visible-bell t)
 
 (setq inhibit-splash-screen t)
 
-(if +graphicp
+(if (display-graphic-p)
     (load-theme 'tango)
   (menu-bar-mode -1))
 
@@ -78,12 +73,14 @@
 
 (global-set-key (kbd "C-z") 'view-mode)
 (global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-o") 'other-window)
-(global-set-key (kbd "M-Z") 'zap-up-to-char)
 
-(with-eval-after-load 'view
-  (define-key view-mode-map "j" 'View-scroll-line-forward)
-  (define-key view-mode-map "k" 'View-scroll-line-backward))
+(key-chord-mode 1)
+
+(key-chord-define-global "jk" 'view-mode)
+(key-chord-define-global "jj" 'avy-goto-char)
+(key-chord-define-global "kk" 'avy-goto-line)
+
+(global-set-key (kbd "M-o") 'ace-window)
 
 
 (setq selectrum-refine-candidates-function '+selectrum-filter)
@@ -161,7 +158,13 @@
       org-attach-method 'lns
       org-link-descriptive nil
       org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window)
+      org-src-window-setup 'current-window
+      org-file-apps
+      '(("\\.pdf\\'" . #1=(lambda (file link)
+                            (call-process-shell-command (concat "xdg-open " file))))
+        ("\\.x?html?\\'" . #1#)
+        (auto-mode . emacs)
+        (directory . emacs)))
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
@@ -171,110 +174,21 @@
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
 
 
-(with-eval-after-load 'pdf-tools
-  (pdf-tools-install))
-
-(autoload 'pdf-view-mode "pdf-tools" "pdf tools" t)
-
-(unless +windowsp
-  (add-to-list 'auto-mode-alist '("\\.pdf\\'" . pdf-view-mode)))
-
-
-(setq default-input-method "pyim"
-      posframe-mouse-banish nil
-      pyim-page-tooltip (if +graphicp 'posframe 'popup))
-
-(setq pyim-autoselector nil
-      pyim-enable-shortcode nil
-      pyim-fuzzy-pinyin-alist nil
-      pyim-default-scheme 'ziranma-shuangpin)
-
-(add-hook 'org-mode-hook
-          (lambda ()
-            (setq-local pyim-english-input-switch-functions
-                        '(pyim-probe-org-speed-commands
-                          pyim-probe-org-structure-template))))
-
-(advice-add 'pyim-punctuation-full-width-p :override 'ignore)
-
-(with-eval-after-load 'pyim
-  (pyim-scheme-add
-   '(ziranma-shuangpin
-     :document "自然码双拼方案。"
-     :class shuangpin
-     :first-chars "abcdefghijklmnopqrstuvwxyz"
-     :rest-chars "abcdefghijklmnopqrstuvwxyz"
-     :prefer-trigger-chars nil
-     :keymaps
-     (("a" "a" "a")
-      ("b" "b" "ou")
-      ("c" "c" "iao")
-      ("d" "d" "uang" "iang")
-      ("e" "e" "e")
-      ("f" "f" "en")
-      ("g" "g" "eng")
-      ("h" "h" "ang")
-      ("i" "ch" "i")
-      ("j" "j" "an")
-      ("k" "k" "ao")
-      ("l" "l" "ai")
-      ("m" "m" "ian")
-      ("n" "n" "in")
-      ("o" "o" "uo" "o")
-      ("p" "p" "un")
-      ("q" "q" "iu")
-      ("r" "r" "uan" "er")
-      ("s" "s" "iong" "ong")
-      ("t" "t" "ue" "ve")
-      ("u" "sh" "u")
-      ("v" "zh" "v" "ui")
-      ("w" "w" "ia" "ua")
-      ("x" "x" "ie")
-      ("y" "y" "uai" "ing")
-      ("z" "z" "ei")
-      ("aa" "a")
-      ("aj" "an")
-      ("ah" "ang")
-      ("ai" "ai")
-      ("ak" "ao")
-      ("al" "ai")
-      ("an" "an")
-      ("ao" "ao")
-      ("ee" "e")
-      ("ef" "en")
-      ("eg" "eng")
-      ("ei" "ei")
-      ("en" "en")
-      ("er" "er")
-      ("ez" "ei")
-      ("ob" "ou")
-      ("oo" "o")
-      ("ou" "ou"))))
-  (define-key pyim-mode-map (kbd ".") 'pyim-page-next-page)
-  (define-key pyim-mode-map (kbd ",") 'pyim-page-previous-page)
-  (pyim-basedict-enable))
-
-
-(defvar +text-en-name (if +windowsp "Consolas" "Ubuntu Mono"))
-(defvar +text-zh-name (if +windowsp "微软雅黑" "WenQuanYi Micro Hei Mono"))
-
 (defvar +text-scale-list
-  (if +windowsp
-      [(9.0 . 10.5) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 18.0)]
-    [(9.0 . 9.0) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 16.5)]))
+  [(9.0 . 9.0) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 16.5)])
 
 (defvar +text-scale-index 1)
 
 (defun +text-scale-set ()
-  (when +graphicp
+  (when (display-graphic-p)
     (let ((scale (aref +text-scale-list +text-scale-index)))
       (set-face-attribute
        'default nil
-       :font (font-spec :name +text-en-name :size (car scale)))
+       :font (font-spec :name "Ubuntu Mono" :size (car scale)))
       (set-fontset-font
        (frame-parameter nil 'font)
        'han
-       (font-spec :name +text-zh-name :size (cdr scale))))))
+       (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale))))))
 
 (+text-scale-set)
 
@@ -290,5 +204,5 @@
     (setq +text-scale-index (1- +text-scale-index))
     (+text-scale-set)))
 
-(global-set-key (kbd "C-+") '+text-scale-increase)
-(global-set-key (kbd "C-_") '+text-scale-decrease)
+(global-set-key (kbd "M-_") '+text-scale-decrease)
+(global-set-key (kbd "M-+") '+text-scale-increase)
