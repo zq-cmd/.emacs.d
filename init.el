@@ -10,9 +10,10 @@
 (setq package-selected-packages '(which-key
                                   selectrum
                                   key-chord
-                                  ace-window
+                                  avy
                                   wgrep
-                                  inf-ruby
+                                  eglot
+                                  macrostep
                                   htmlize
                                   cdlatex))
 
@@ -29,7 +30,7 @@
 (setq inhibit-splash-screen t)
 
 (if (display-graphic-p)
-    (load-theme 'tango)
+    (load-theme 'modus-operandi)
   (menu-bar-mode -1))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
@@ -46,6 +47,8 @@
 
 (auto-save-visited-mode 1)
 
+(setq save-abbrevs nil)
+
 (setq-default abbrev-mode t)
 
 
@@ -53,6 +56,13 @@
 
 (show-paren-mode 1)
 (electric-pair-mode 1)
+
+(defun +insert-pair (&optional arg)
+  (interactive "P")
+  (insert-pair (or arg 1)))
+
+(dolist (key '("M-(" "M-[" "M-\""))
+  (global-set-key (kbd key) '+insert-pair))
 
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
@@ -71,16 +81,20 @@
 (setq view-read-only t
       disabled-command-function nil)
 
-(global-set-key (kbd "C-z") 'view-mode)
+(repeat-mode 1)
+
+(define-key undo-repeat-map (kbd "r") 'undo-redo)
+
+(global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-z") 'view-mode)
+(global-set-key (kbd "M-o") 'other-window)
 
 (key-chord-mode 1)
 
 (key-chord-define-global "jk" 'view-mode)
 (key-chord-define-global "jj" 'avy-goto-char)
 (key-chord-define-global "kk" 'avy-goto-line)
-
-(global-set-key (kbd "M-o") 'ace-window)
 
 
 (setq selectrum-refine-candidates-function '+selectrum-filter)
@@ -118,10 +132,6 @@
 (define-key prog-mode-map (kbd "TAB")
   '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
 
-(with-eval-after-load 'cc-mode
-  (define-key c-mode-base-map (kbd "TAB")
-    '(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
-
 
 (setq dired-listing-switches "-alh")
 
@@ -147,6 +157,11 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
+
+(define-key emacs-lisp-mode-map (kbd "C-c e") 'macrostep-expand)
+(define-key lisp-interaction-mode-map (kbd "C-c e") 'macrostep-expand)
+
 
 (setq org-modules '(org-tempo org-mouse)
       org-export-backends '(html latex)
@@ -161,7 +176,8 @@
       org-src-window-setup 'current-window
       org-file-apps
       '(("\\.pdf\\'" . #1=(lambda (file link)
-                            (call-process-shell-command (concat "xdg-open " file))))
+                            (call-process-shell-command
+                             (concat "xdg-open " file))))
         ("\\.x?html?\\'" . #1#)
         (auto-mode . emacs)
         (directory . emacs)))
@@ -204,5 +220,5 @@
     (setq +text-scale-index (1- +text-scale-index))
     (+text-scale-set)))
 
-(global-set-key (kbd "M-_") '+text-scale-decrease)
-(global-set-key (kbd "M-+") '+text-scale-increase)
+(global-set-key (kbd "C--") '+text-scale-decrease)
+(global-set-key (kbd "C-=") '+text-scale-increase)
