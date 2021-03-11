@@ -13,7 +13,7 @@
                                   avy
                                   wgrep
                                   eglot
-                                  macrostep
+                                  sly-macrostep
                                   htmlize
                                   cdlatex))
 
@@ -30,7 +30,7 @@
 (setq inhibit-splash-screen t)
 
 (if (display-graphic-p)
-    (load-theme 'modus-operandi)
+    (load-theme 'leuven)
   (menu-bar-mode -1))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
@@ -132,6 +132,10 @@
 (define-key prog-mode-map (kbd "TAB")
   '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
 
+(with-eval-after-load 'cc-mode
+  (define-key c-mode-base-map (kbd "TAB")
+    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+
 
 (setq dired-listing-switches "-alh")
 
@@ -159,8 +163,15 @@
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
-(define-key emacs-lisp-mode-map (kbd "C-c e") 'macrostep-expand)
-(define-key lisp-interaction-mode-map (kbd "C-c e") 'macrostep-expand)
+(setq org-babel-python-command "python3"
+      python-indent-guess-indent-offset nil)
+
+(setq inferior-lisp-program "sbcl"
+      common-lisp-hyperspec-root (concat "file://"
+                                         (expand-file-name
+                                          "~/Documents/hyperspec/HyperSpec/")))
+
+(define-key lisp-mode-shared-map (kbd "C-c e") 'macrostep-expand)
 
 
 (setq org-modules '(org-tempo org-mouse)
