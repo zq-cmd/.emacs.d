@@ -82,6 +82,7 @@
 
 (global-set-key (kbd "C-z") 'repeat)
 (global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "M-o") 'other-window)
 
 (repeat-mode 1)
 
@@ -91,9 +92,7 @@
 
 (key-chord-define-global "jk" 'view-mode)
 (key-chord-define-global "jj" 'avy-goto-char)
-(key-chord-define-global "kk" 'avy-goto-word-0)
-
-(global-set-key (kbd "M-o") 'avy-goto-line)
+(key-chord-define-global "kk" 'avy-goto-line)
 
 
 (setq selectrum-refine-candidates-function '+selectrum-filter)
