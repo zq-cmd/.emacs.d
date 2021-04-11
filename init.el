@@ -4,8 +4,8 @@
 (setq custom-file "~/.emacs.d/custom.el")
 
 (setq package-archives
-      '(("gnu"   . "http://mirrors.tuna.tsinghua.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.tuna.tsinghua.edu.cn/elpa/melpa/")))
+      '(("gnu"   . "http://mirrors.ustc.edu.cn/elpa/gnu/")
+        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")))
 
 (setq package-selected-packages '(which-key
                                   selectrum
@@ -13,7 +13,6 @@
                                   avy
                                   wgrep
                                   eglot
-                                  sly-macrostep
                                   htmlize
                                   cdlatex))
 
@@ -30,7 +29,7 @@
 (setq inhibit-splash-screen t)
 
 (if (display-graphic-p)
-    (load-theme 'leuven)
+    (load-theme 'tango)
   (menu-bar-mode -1))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
@@ -81,20 +80,20 @@
 (setq view-read-only t
       disabled-command-function nil)
 
+(global-set-key (kbd "C-z") 'repeat)
+(global-set-key (kbd "C-?") 'undo-redo)
+
 (repeat-mode 1)
 
 (define-key undo-repeat-map (kbd "r") 'undo-redo)
-
-(global-set-key (kbd "C-z") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-z") 'view-mode)
-(global-set-key (kbd "M-o") 'other-window)
 
 (key-chord-mode 1)
 
 (key-chord-define-global "jk" 'view-mode)
 (key-chord-define-global "jj" 'avy-goto-char)
-(key-chord-define-global "kk" 'avy-goto-line)
+(key-chord-define-global "kk" 'avy-goto-word-0)
+
+(global-set-key (kbd "M-o") 'avy-goto-line)
 
 
 (setq selectrum-refine-candidates-function '+selectrum-filter)
@@ -165,13 +164,6 @@
 
 (setq org-babel-python-command "python3"
       python-indent-guess-indent-offset nil)
-
-(setq inferior-lisp-program "sbcl"
-      common-lisp-hyperspec-root (concat "file://"
-                                         (expand-file-name
-                                          "~/Documents/hyperspec/HyperSpec/")))
-
-(define-key lisp-mode-shared-map (kbd "C-c e") 'macrostep-expand)
 
 
 (setq org-modules '(org-tempo org-mouse)
