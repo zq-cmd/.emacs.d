@@ -1,6 +1,8 @@
 ;;; -*- lexical-binding: t -*-
 
 
+(add-to-list 'load-path "/usr/share/emacs/site-lisp")
+
 (setq custom-file "~/.emacs.d/custom.el")
 
 (setq package-archives
@@ -11,8 +13,10 @@
                                   selectrum
                                   key-chord
                                   avy
+                                  imenu-list
                                   wgrep
                                   eglot
+                                  sly-macrostep
                                   htmlize
                                   cdlatex))
 
@@ -28,9 +32,13 @@
 
 (setq inhibit-splash-screen t)
 
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
+(blink-cursor-mode -1)
+
 (if (display-graphic-p)
-    (load-theme 'tango)
-  (menu-bar-mode -1))
+    (load-theme 'tango))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
@@ -88,11 +96,14 @@
 
 (define-key undo-repeat-map (kbd "r") 'undo-redo)
 
+(with-eval-after-load 'view
+  (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
+
 (key-chord-mode 1)
 
 (key-chord-define-global "jk" 'view-mode)
-(key-chord-define-global "jj" 'avy-goto-char)
 (key-chord-define-global "kk" 'avy-goto-line)
+(key-chord-define-global "jj" 'avy-goto-char-timer)
 
 
 (setq selectrum-refine-candidates-function '+selectrum-filter)
@@ -107,8 +118,6 @@
 (selectrum-mode 1)
 
 (global-set-key (kbd "C-x C-z") 'selectrum-repeat)
-
-(global-set-key (kbd "C-c C-j") 'imenu)
 
 (defun +project-switch-project ()
   (interactive)
@@ -127,6 +136,7 @@
       command
     'completion-at-point))
 
+(define-key prog-mode-map (kbd "<backtab>") 'indent-for-tab-command)
 (define-key prog-mode-map (kbd "TAB")
   '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
 
@@ -135,6 +145,12 @@
     `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 
+(setq imenu-list-size 0.2
+      imenu-list-position 'left)
+
+(global-set-key (kbd "<f8>") 'imenu-list-smart-toggle)
+(global-set-key (kbd "C-c C-j") 'imenu)
+
 (setq dired-listing-switches "-alh")
 
 (defun +dired-do-xdg-open ()
@@ -161,11 +177,16 @@
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
-(setq org-babel-python-command "python3"
-      python-indent-guess-indent-offset nil)
+(setq inferior-lisp-program "sbcl"
+      common-lisp-hyperspec-root
+      (concat "file://"
+              (expand-file-name
+               "~/Documents/hyperspec/HyperSpec/")))
+
+(define-key lisp-mode-shared-map (kbd "C-c e") 'macrostep-expand)
 
 
-(setq org-modules '(org-tempo org-mouse)
+(setq org-modules '(org-tempo)
       org-export-backends '(html latex)
       org-html-postamble nil
       org-html-validation-link nil
@@ -175,14 +196,7 @@
       org-attach-method 'lns
       org-link-descriptive nil
       org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window
-      org-file-apps
-      '(("\\.pdf\\'" . #1=(lambda (file link)
-                            (call-process-shell-command
-                             (concat "xdg-open " file))))
-        ("\\.x?html?\\'" . #1#)
-        (auto-mode . emacs)
-        (directory . emacs)))
+      org-src-window-setup 'current-window)
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
