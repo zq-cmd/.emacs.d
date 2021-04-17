@@ -38,7 +38,7 @@
 (blink-cursor-mode -1)
 
 (if (display-graphic-p)
-    (load-theme 'tango))
+    (load-theme 'modus-operandi))
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
 (global-set-key (kbd "<f10>") 'toggle-frame-maximized)
@@ -85,19 +85,43 @@
 (which-key-mode 1)
 
 
-(setq view-read-only t
-      disabled-command-function nil)
+(setq disabled-command-function nil)
 
-(global-set-key (kbd "C-z") 'repeat)
-(global-set-key (kbd "C-?") 'undo-redo)
-(global-set-key (kbd "M-o") 'other-window)
+(defun +repeat ()
+  (interactive)
+  (setq last-command-event ?z
+        this-command 'repeat
+        real-this-command 'repeat)
+  (call-interactively 'repeat))
+
+(global-set-key (kbd "C-z") '+repeat)
 
 (repeat-mode 1)
 
+(global-set-key (kbd "C-?") 'undo-redo)
+
 (define-key undo-repeat-map (kbd "r") 'undo-redo)
+
+(put 'undo-redo 'repeat-map 'undo-repeat-map)
+
+(define-key other-window-repeat-map (kbd "f") 'find-file)
+(define-key other-window-repeat-map (kbd "b") 'switch-to-buffer)
+(define-key other-window-repeat-map (kbd "0") 'delete-window)
+(define-key other-window-repeat-map (kbd "1") 'delete-other-windows)
+
+(defun +other-window ()
+  (interactive)
+  (other-window 1)
+  (set-transient-map other-window-repeat-map))
+
+(global-set-key (kbd "M-o") '+other-window)
+
+(setq view-read-only t)
 
 (with-eval-after-load 'view
   (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
+
+(setq avy-styles-alist '((avy-goto-line . words)))
 
 (key-chord-mode 1)
 
@@ -116,8 +140,6 @@
       (invalid-regexp nil))))
 
 (selectrum-mode 1)
-
-(global-set-key (kbd "C-x C-z") 'selectrum-repeat)
 
 (defun +project-switch-project ()
   (interactive)
@@ -145,9 +167,6 @@
     `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 
-(setq imenu-list-size 0.2
-      imenu-list-position 'left)
-
 (global-set-key (kbd "<f8>") 'imenu-list-smart-toggle)
 (global-set-key (kbd "C-c C-j") 'imenu)
 
