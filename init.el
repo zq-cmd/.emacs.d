@@ -13,10 +13,9 @@
                                   selectrum
                                   key-chord
                                   avy
-                                  imenu-list
                                   wgrep
+                                  magit
                                   eglot
-                                  sly-macrostep
                                   htmlize
                                   cdlatex))
 
@@ -33,18 +32,15 @@
 (setq inhibit-splash-screen t)
 
 (menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
 (blink-cursor-mode -1)
 
-(if (display-graphic-p)
-    (load-theme 'modus-operandi))
+(load-theme 'modus-vivendi)
 
 (global-set-key (kbd "<f2>") 'tmm-menubar)
-(global-set-key (kbd "<f10>") 'toggle-frame-maximized)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
+      auto-revert-check-vc-info t
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
@@ -58,22 +54,16 @@
 
 (setq-default abbrev-mode t)
 
+(setcdr (assq 'abbrev-mode minor-mode-alist) '(""))
+
 
 (setq-default indent-tabs-mode nil)
 
 (show-paren-mode 1)
 (electric-pair-mode 1)
 
-(defun +insert-pair (&optional arg)
-  (interactive "P")
-  (insert-pair (or arg 1)))
-
-(dolist (key '("M-(" "M-[" "M-\""))
-  (global-set-key (kbd key) '+insert-pair))
-
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
-(global-set-key (kbd "C-M-<backspace>") 'backward-kill-sexp)
 
 
 (setq which-key-lighter nil
@@ -104,8 +94,6 @@
 
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
-(define-key other-window-repeat-map (kbd "f") 'find-file)
-(define-key other-window-repeat-map (kbd "b") 'switch-to-buffer)
 (define-key other-window-repeat-map (kbd "0") 'delete-window)
 (define-key other-window-repeat-map (kbd "1") 'delete-other-windows)
 
@@ -151,6 +139,10 @@
 
 (define-key project-prefix-map (kbd "p") '+project-switch-project)
 
+(global-set-key (kbd "C-c C-j") 'imenu)
+
+(define-key prog-mode-map (kbd "<backtab>") 'indent-for-tab-command)
+
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
           (<= (current-column)
@@ -158,18 +150,20 @@
       command
     'completion-at-point))
 
-(define-key prog-mode-map (kbd "<backtab>") 'indent-for-tab-command)
 (define-key prog-mode-map (kbd "TAB")
   '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
 
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
-    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter))
+  (define-key c-mode-base-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key c-mode-base-map (kbd "M-p") 'flymake-goto-prev-error))
+
+(setq flymake-cc-command '("gcc" "-x" "c++" "-fsyntax-only" "-"))
+
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
-(global-set-key (kbd "<f8>") 'imenu-list-smart-toggle)
-(global-set-key (kbd "C-c C-j") 'imenu)
-
 (setq dired-listing-switches "-alh")
 
 (defun +dired-do-xdg-open ()
@@ -179,9 +173,6 @@
 
 (with-eval-after-load 'dired
   (define-key dired-mode-map (kbd "V") '+dired-do-xdg-open))
-
-(setq ediff-window-setup-function 'ediff-setup-windows-plain
-      ediff-split-window-function 'split-window-horizontally)
 
 (defun rg ()
   (interactive)
@@ -194,15 +185,7 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
-
-(setq inferior-lisp-program "sbcl"
-      common-lisp-hyperspec-root
-      (concat "file://"
-              (expand-file-name
-               "~/Documents/hyperspec/HyperSpec/")))
-
-(define-key lisp-mode-shared-map (kbd "C-c e") 'macrostep-expand)
+(setq transient-save-history nil)
 
 
 (setq org-modules '(org-tempo)
@@ -210,9 +193,6 @@
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
-      org-use-speed-commands t
-      org-id-track-globally nil
-      org-attach-method 'lns
       org-link-descriptive nil
       org-link-frame-setup '((file . find-file))
       org-src-window-setup 'current-window)
@@ -223,37 +203,3 @@
 (provide 'texmathp)
 (defun texmathp () t)
 (add-hook 'org-mode-hook 'org-cdlatex-mode)
-
-
-(defvar +text-scale-list
-  [(9.0 . 9.0) (11.5 . 12.0) (14.0 . 15.0) (16.0 . 16.5)])
-
-(defvar +text-scale-index 1)
-
-(defun +text-scale-set ()
-  (when (display-graphic-p)
-    (let ((scale (aref +text-scale-list +text-scale-index)))
-      (set-face-attribute
-       'default nil
-       :font (font-spec :name "Ubuntu Mono" :size (car scale)))
-      (set-fontset-font
-       (frame-parameter nil 'font)
-       'han
-       (font-spec :name "WenQuanYi Micro Hei Mono" :size (cdr scale))))))
-
-(+text-scale-set)
-
-(defun +text-scale-increase ()
-  (interactive)
-  (when (< +text-scale-index 3)
-    (setq +text-scale-index (1+ +text-scale-index))
-    (+text-scale-set)))
-
-(defun +text-scale-decrease ()
-  (interactive)
-  (when (> +text-scale-index 0)
-    (setq +text-scale-index (1- +text-scale-index))
-    (+text-scale-set)))
-
-(global-set-key (kbd "C--") '+text-scale-decrease)
-(global-set-key (kbd "C-=") '+text-scale-increase)

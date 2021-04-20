@@ -8,5 +8,6 @@ elpa
 games
 package-quickstart.el
 projects
+semanticdb
 tramp
 url
