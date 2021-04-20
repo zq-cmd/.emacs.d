@@ -86,9 +86,9 @@
 
 (repeat-mode 1)
 
-(global-set-key (kbd "C-?") 'undo-redo)
+(global-set-key (kbd "C-x U") 'undo-redo)
 
-(define-key undo-repeat-map (kbd "r") 'undo-redo)
+(define-key undo-repeat-map (kbd "U") 'undo-redo)
 
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
