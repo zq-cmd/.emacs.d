@@ -67,8 +67,6 @@
 
 
 (setq which-key-lighter nil
-      which-key-prefix-prefix nil
-      which-key-replacement-alist nil
       which-key-idle-secondary-delay 0
       which-key-sort-order 'which-key-description-order)
 
