@@ -16,8 +16,7 @@
                                   wgrep
                                   magit
                                   eglot
-                                  htmlize
-                                  cdlatex))
+                                  htmlize))
 
 (require 'package)
 
@@ -75,33 +74,29 @@
 
 (setq disabled-command-function nil)
 
-(defun +repeat ()
-  (interactive)
-  (setq last-command-event ?z
-        this-command 'repeat
-        real-this-command 'repeat)
-  (call-interactively 'repeat))
+(defmacro +call-interactively (key cmd)
+  `(defun ,(intern (concat "+" (symbol-name cmd))) ()
+     (interactive)
+     (setq last-command-event ,key
+           this-command ',cmd
+           real-this-command ',cmd)
+     (call-interactively ',cmd)))
 
-(global-set-key (kbd "C-z") '+repeat)
+(global-set-key (kbd "C-z") (+call-interactively ?z repeat))
 
 (repeat-mode 1)
 
 (global-set-key (kbd "C-x U") 'undo-redo)
-
 (define-key undo-repeat-map (kbd "U") 'undo-redo)
-
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
 (define-key other-window-repeat-map (kbd "0") 'delete-window)
 (define-key other-window-repeat-map (kbd "1") 'delete-other-windows)
+(put 'delete-window 'repeat-map 'other-window-repeat-map)
 
-(defun +other-window ()
-  (interactive)
-  (other-window 1)
-  (set-transient-map other-window-repeat-map))
+(global-set-key (kbd "M-o") (+call-interactively ?o other-window))
 
-(global-set-key (kbd "M-o") '+other-window)
-
+
 (setq view-read-only t)
 
 (with-eval-after-load 'view
@@ -138,8 +133,6 @@
 (define-key project-prefix-map (kbd "p") '+project-switch-project)
 
 (global-set-key (kbd "C-c C-j") 'imenu)
-
-(define-key prog-mode-map (kbd "<backtab>") 'indent-for-tab-command)
 
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
@@ -193,13 +186,7 @@
       org-html-postamble nil
       org-html-validation-link nil
       org-special-ctrl-a/e t
-      org-link-descriptive nil
-      org-link-frame-setup '((file . find-file))
-      org-src-window-setup 'current-window)
+      org-link-descriptive nil)
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
-
-(provide 'texmathp)
-(defun texmathp () t)
-(add-hook 'org-mode-hook 'org-cdlatex-mode)
