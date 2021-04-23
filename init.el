@@ -116,14 +116,14 @@
 (key-chord-define-global "jj" 'avy-goto-char-timer)
 
 
-(setq selectrum-refine-candidates-function '+selectrum-filter)
-
 (defun +selectrum-filter (query candidates)
   (let ((regexp (string-join (split-string query) ".*")))
     (condition-case error
         (seq-filter (lambda (candidate) (string-match-p regexp candidate))
                     candidates)
       (invalid-regexp nil))))
+
+(setq selectrum-refine-candidates-function '+selectrum-filter)
 
 (selectrum-mode 1)
 
@@ -153,9 +153,11 @@
 
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
-    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter))
-  (define-key c-mode-base-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key c-mode-base-map (kbd "M-p") 'flymake-goto-prev-error))
+    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+
+(with-eval-after-load 'flymake
+  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 (setq flymake-cc-command '("gcc" "-x" "c++" "-fsyntax-only" "-"))
 
