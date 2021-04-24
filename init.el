@@ -14,7 +14,6 @@
                                   key-chord
                                   avy
                                   wgrep
-                                  magit
                                   eglot
                                   htmlize))
 
@@ -39,7 +38,6 @@
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-      auto-revert-check-vc-info t
       vc-handled-backends '(Git)
       vc-make-backup-files t
       version-control 'never
@@ -177,8 +175,6 @@
 
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
-
-(setq transient-save-history nil)
 
 
 (setq org-modules '(org-tempo)
