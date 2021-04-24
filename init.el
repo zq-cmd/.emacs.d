@@ -9,13 +9,8 @@
       '(("gnu"   . "http://mirrors.ustc.edu.cn/elpa/gnu/")
         ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")))
 
-(setq package-selected-packages '(which-key
-                                  selectrum
-                                  key-chord
-                                  avy
-                                  wgrep
-                                  eglot
-                                  htmlize))
+(setq package-selected-packages
+      '(which-key wgrep eglot htmlize))
 
 (require 'package)
 
@@ -72,15 +67,14 @@
 
 (setq disabled-command-function nil)
 
-(defmacro +call-interactively (key cmd)
-  `(defun ,(intern (concat "+" (symbol-name cmd))) ()
-     (interactive)
-     (setq last-command-event ,key
-           this-command ',cmd
-           real-this-command ',cmd)
-     (call-interactively ',cmd)))
+(defun +repeat ()
+  (interactive)
+  (setq last-command-event ?z
+        this-command 'repeat
+        real-this-command 'repeat)
+  (call-interactively 'repeat))
 
-(global-set-key (kbd "C-z") (+call-interactively ?z repeat))
+(global-set-key (kbd "C-z") '+repeat)
 
 (repeat-mode 1)
 
@@ -90,9 +84,8 @@
 
 (define-key other-window-repeat-map (kbd "0") 'delete-window)
 (define-key other-window-repeat-map (kbd "1") 'delete-other-windows)
-(put 'delete-window 'repeat-map 'other-window-repeat-map)
 
-(global-set-key (kbd "M-o") (+call-interactively ?o other-window))
+(global-set-key (kbd "M-o") "\C-xo")
 
 
 (setq view-read-only t)
@@ -100,25 +93,37 @@
 (with-eval-after-load 'view
   (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
 
-(setq avy-styles-alist '((avy-goto-line . words)))
+(global-set-key (kbd "M-z") 'view-mode)
 
-(key-chord-mode 1)
+(defun +input-method-function (first-char)
+  (if (and (eq first-char ?j)
+           (not executing-kbd-macro)
+           (not (sit-for 0.1 'no-redisplay)))
+      (let ((next-char
+             (let (input-method-function)
+               (read-event))))
+        (if (eq next-char ?k)
+            '(?\M-z)
+          (push next-char unread-command-events)
+          '(?j)))
+    `(,first-char)))
 
-(key-chord-define-global "jk" 'view-mode)
-(key-chord-define-global "kk" 'avy-goto-line)
-(key-chord-define-global "jj" 'avy-goto-char-timer)
+(setq input-method-function '+input-method-function)
 
 
-(defun +selectrum-filter (query candidates)
-  (let ((regexp (string-join (split-string query) ".*")))
-    (condition-case error
-        (seq-filter (lambda (candidate) (string-match-p regexp candidate))
-                    candidates)
-      (invalid-regexp nil))))
+(fido-mode 1)
 
-(setq selectrum-refine-candidates-function '+selectrum-filter)
+(defun +completion-in-region (beg end collection &optional predicate)
+  (let* ((enable-recursive-minibuffers t)
+         (prefix (buffer-substring beg end))
+         (choices (all-completions prefix collection predicate))
+         (choice (cond ((null choices) nil)
+                       ((null (cdr choices)) (car choices))
+                       (t (completing-read "complete: " choices)))))
+    (if (string-prefix-p prefix choice)
+        (insert (substring choice (- end beg))))))
 
-(selectrum-mode 1)
+(setq completion-in-region-function '+completion-in-region)
 
 (defun +project-switch-project ()
   (interactive)
@@ -185,4 +190,4 @@
       org-link-descriptive nil)
 
 (with-eval-after-load 'org
-  (define-key org-mode-map (kbd "<") (lambda () (interactive) (insert ?<))))
+  (define-key org-mode-map (kbd "<") "\C-q<"))
