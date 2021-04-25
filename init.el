@@ -2,22 +2,7 @@
 
 
 (add-to-list 'load-path "/usr/share/emacs/site-lisp")
-
-(setq custom-file "~/.emacs.d/custom.el")
-
-(setq package-archives
-      '(("gnu"   . "http://mirrors.ustc.edu.cn/elpa/gnu/")
-        ("melpa" . "http://mirrors.ustc.edu.cn/elpa/melpa/")))
-
-(setq package-selected-packages
-      '(which-key wgrep eglot htmlize))
-
-(require 'package)
-
-(unless (package-installed-p 'which-key)
-  (package-refresh-contents)
-  (dolist (pkg package-selected-packages)
-    (package-install pkg)))
+(add-to-list 'load-path (expand-file-name "lib" user-emacs-directory))
 
 
 (setq visible-bell t)
@@ -58,6 +43,8 @@
 (global-set-key (kbd "M-D") 'delete-pair)
 
 
+(require 'which-key)
+
 (setq which-key-lighter nil
       which-key-idle-secondary-delay 0
       which-key-sort-order 'which-key-description-order)
@@ -159,7 +146,20 @@
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
+(autoload 'eglot "eglot" "eglot" t)
+
 
+(defun +xclip-save (beg end)
+  (interactive "r")
+  (call-process-region beg end "xclip"))
+
+(defun +xclip-yank ()
+  (interactive "*")
+  (insert (shell-command-to-string "xclip -o")))
+
+(global-set-key (kbd "M-W") '+xclip-save)
+(global-set-key (kbd "M-Y") '+xclip-yank)
+
 (setq dired-listing-switches "-alh")
 
 (defun +dired-do-xdg-open ()
@@ -181,13 +181,13 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
+(autoload 'wgrep-setup "wgrep")
+(add-hook 'grep-setup-hook 'wgrep-setup)
+
 
 (setq org-modules '(org-tempo)
-      org-export-backends '(html latex)
-      org-html-postamble nil
-      org-html-validation-link nil
-      org-special-ctrl-a/e t
-      org-link-descriptive nil)
+      org-export-backends '(latex)
+      org-special-ctrl-a/e 'reversed)
 
 (with-eval-after-load 'org
   (define-key org-mode-map (kbd "<") "\C-q<"))

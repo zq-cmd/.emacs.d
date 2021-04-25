@@ -9,4 +9,4 @@
                   gc-cons-threshold 20000000
                   file-name-handler-alist file-name-handler-alist-init)))
 
-(setq package-quickstart t)
+(setq package-enable-at-startup nil)
