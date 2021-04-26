@@ -37,15 +37,6 @@
 (global-set-key (kbd "M-D") 'delete-pair)
 
 
-(require 'which-key)
-
-(setq which-key-lighter nil
-      which-key-idle-secondary-delay 0
-      which-key-sort-order 'which-key-description-order)
-
-(which-key-mode 1)
-
-
 (setq disabled-command-function nil)
 
 (defun +repeat ()
