@@ -27,12 +27,6 @@
 
 (auto-save-visited-mode 1)
 
-(setq save-abbrevs nil)
-
-(setq-default abbrev-mode t)
-
-(setcdr (assq 'abbrev-mode minor-mode-alist) '(""))
-
 
 (setq-default indent-tabs-mode nil)
 
@@ -187,6 +181,7 @@
 
 (setq org-modules '(org-tempo)
       org-export-backends '(latex)
+      org-use-speed-commands t
       org-special-ctrl-a/e 'reversed)
 
 (with-eval-after-load 'org
