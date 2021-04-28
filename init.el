@@ -92,20 +92,14 @@
          (choice (cond ((null choices) nil)
                        ((null (cdr choices)) (car choices))
                        (t (completing-read "complete: " choices)))))
-    (if (string-prefix-p prefix choice)
-        (insert (substring choice (- end beg))))))
+    (when choice
+      (let ((count 0)
+            (len (length prefix)))
+        (while (not (string-prefix-p (substring prefix count) choice))
+          (setq count (1+ count)))
+        (insert (substring choice (- len count)))))))
 
 (setq completion-in-region-function '+completion-in-region)
-
-(defun +project-switch-project ()
-  (interactive)
-  (require 'project)
-  (let ((default-directory (project-prompt-project-dir))
-        (command (lookup-key project-prefix-map
-                             (vector (read-char-exclusive)))))
-    (if command (call-interactively command))))
-
-(define-key project-prefix-map (kbd "p") '+project-switch-project)
 
 (global-set-key (kbd "C-c C-j") 'imenu)
 
@@ -127,7 +121,10 @@
   (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
-(setq flymake-cc-command '("gcc" "-x" "c++" "-fsyntax-only" "-"))
+(defun +flymake-cc-command ()
+  `("gcc" "-x" ,(if (derived-mode-p 'c++-mode) "c++" "c") "-fsyntax-only" "-"))
+
+(setq flymake-cc-command '+flymake-cc-command)
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
