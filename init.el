@@ -36,6 +36,20 @@
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
 
+(global-set-key (kbd "M-n")
+                '(menu-item "" nil :filter
+                            (lambda (_)
+                              (if (region-active-p)
+                                  "\C-x\C-x\C-n\C-x\C-x"
+                                "\C-a\C-@\C-n\C-x\C-x"))))
+
+(global-set-key (kbd "M-p")
+                '(menu-item "" nil :filter
+                            (lambda (_)
+                              (if (region-active-p)
+                                  "\C-x\C-x\C-p\C-x\C-x"
+                                "\C-a\C-@\C-p\C-x\C-x"))))
+
 
 (setq disabled-command-function nil)
 
@@ -54,8 +68,12 @@
 (define-key undo-repeat-map (kbd "U") 'undo-redo)
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
-(define-key other-window-repeat-map (kbd "0") 'delete-window)
-(define-key other-window-repeat-map (kbd "1") 'delete-other-windows)
+(dolist (cmd '(("0" . delete-window)
+               ("1" . delete-other-windows)
+               ("2" . split-window-below)
+               ("3" . split-window-right)))
+  (define-key other-window-repeat-map (kbd (car cmd)) (cdr cmd))
+  (put (cdr cmd) 'repeat-map 'other-window-repeat-map))
 
 (global-set-key (kbd "M-o") "\C-xo")
 
@@ -118,8 +136,8 @@
     `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 (with-eval-after-load 'flymake
-  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
-  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
+  (define-key flymake-mode-map (kbd "M-N") 'flymake-goto-next-error)
+  (define-key flymake-mode-map (kbd "M-P") 'flymake-goto-prev-error))
 
 (defun +flymake-cc-command ()
   `("gcc" "-x" ,(if (derived-mode-p 'c++-mode) "c++" "c") "-fsyntax-only" "-"))
