@@ -23,8 +23,6 @@
       version-control 'never
       backup-directory-alist '(("." . "~/.bak")))
 
-(setq auto-save-visited-interval 30)
-
 (auto-save-visited-mode 1)
 
 
@@ -35,20 +33,6 @@
 
 (global-set-key (kbd "M-R") 'raise-sexp)
 (global-set-key (kbd "M-D") 'delete-pair)
-
-(global-set-key (kbd "M-n")
-                '(menu-item "" nil :filter
-                            (lambda (_)
-                              (if (region-active-p)
-                                  "\C-x\C-x\C-n\C-x\C-x"
-                                "\C-a\C-@\C-n\C-x\C-x"))))
-
-(global-set-key (kbd "M-p")
-                '(menu-item "" nil :filter
-                            (lambda (_)
-                              (if (region-active-p)
-                                  "\C-x\C-x\C-p\C-x\C-x"
-                                "\C-a\C-@\C-p\C-x\C-x"))))
 
 
 (setq disabled-command-function nil)
@@ -68,12 +52,12 @@
 (define-key undo-repeat-map (kbd "U") 'undo-redo)
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
-(dolist (cmd '(("0" . delete-window)
-               ("1" . delete-other-windows)
-               ("2" . split-window-below)
-               ("3" . split-window-right)))
-  (define-key other-window-repeat-map (kbd (car cmd)) (cdr cmd))
-  (put (cdr cmd) 'repeat-map 'other-window-repeat-map))
+(dolist (it '(("0" . delete-window)
+              ("1" . delete-other-windows)
+              ("2" . split-window-below)
+              ("3" . split-window-right)))
+  (define-key other-window-repeat-map (kbd (car it)) (cdr it))
+  (put (cdr it) 'repeat-map 'other-window-repeat-map))
 
 (global-set-key (kbd "M-o") "\C-xo")
 
@@ -101,6 +85,8 @@
 (setq input-method-function '+input-method-function)
 
 
+(global-set-key (kbd "C-c C-j") 'imenu)
+
 (defun +completion-in-region (beg end collection &optional predicate)
   (let* ((enable-recursive-minibuffers t)
          (prefix (buffer-substring beg end))
@@ -115,14 +101,13 @@
           (setq count (1+ count)))
         (insert (substring choice (- len count)))))))
 
-(defun +completion-at-point ()
-  (interactive)
+(defun +completion-at-point (arg)
+  (interactive "*P")
   (let ((completion-in-region-function '+completion-in-region))
-    (call-interactively (lookup-key (current-local-map) (kbd "TAB")))))
+    (call-interactively (lookup-key `(,(current-local-map) ,(current-global-map))
+                                    (kbd (if arg "M-TAB" "TAB"))))))
 
 (global-set-key (kbd "<f2>") '+completion-at-point)
-
-(global-set-key (kbd "C-c C-j") 'imenu)
 
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
@@ -139,8 +124,8 @@
     `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
 (with-eval-after-load 'flymake
-  (define-key flymake-mode-map (kbd "M-N") 'flymake-goto-next-error)
-  (define-key flymake-mode-map (kbd "M-P") 'flymake-goto-prev-error))
+  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
 
 (defun +flymake-cc-command ()
   `("gcc" "-x" ,(if (derived-mode-p 'c++-mode) "c++" "c") "-fsyntax-only" "-"))
