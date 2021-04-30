@@ -14,7 +14,7 @@
 
 (load-theme 'modus-vivendi)
 
-(global-set-key (kbd "<f2>") 'tmm-menubar)
+(global-set-key (kbd "<f5>") 'tmm-menubar)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -101,15 +101,13 @@
 (setq input-method-function '+input-method-function)
 
 
-(fido-mode 1)
-
 (defun +completion-in-region (beg end collection &optional predicate)
   (let* ((enable-recursive-minibuffers t)
          (prefix (buffer-substring beg end))
          (choices (all-completions prefix collection predicate))
          (choice (cond ((null choices) nil)
                        ((null (cdr choices)) (car choices))
-                       (t (completing-read "complete: " choices)))))
+                       (t (ido-completing-read "complete: " choices)))))
     (when choice
       (let ((count 0)
             (len (length prefix)))
@@ -117,7 +115,12 @@
           (setq count (1+ count)))
         (insert (substring choice (- len count)))))))
 
-(setq completion-in-region-function '+completion-in-region)
+(defun +completion-at-point ()
+  (interactive)
+  (let ((completion-in-region-function '+completion-in-region))
+    (call-interactively (lookup-key (current-local-map) (kbd "TAB")))))
+
+(global-set-key (kbd "<f2>") '+completion-at-point)
 
 (global-set-key (kbd "C-c C-j") 'imenu)
 
@@ -183,6 +186,8 @@
 
 (autoload 'wgrep-setup "wgrep")
 (add-hook 'grep-setup-hook 'wgrep-setup)
+
+(setq ispell-dictionary "en")
 
 
 (setq org-modules '(org-tempo)
