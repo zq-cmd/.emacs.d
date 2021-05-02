@@ -90,8 +90,6 @@
 (setq input-method-function '+input-method-function)
 
 
-(global-set-key (kbd "C-c C-j") 'imenu)
-
 (defun +completion-in-region (beg end collection &optional predicate)
   (let* ((enable-recursive-minibuffers t)
          (prefix (buffer-substring beg end))
@@ -128,6 +126,9 @@
   (define-key c-mode-base-map (kbd "TAB")
     `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
 
+
+(global-set-key (kbd "C-c C-j") 'imenu)
+
 (with-eval-after-load 'flymake
   (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
   (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error))
@@ -145,11 +146,6 @@
 (setq semantic-new-buffer-setup-functions
       '((c-mode . semantic-default-c-setup)
         (c++-mode . semantic-default-c-setup)))
-
-(setq semantic-default-submodes
-      '(global-semanticdb-minor-mode
-        global-semantic-idle-scheduler-mode
-        global-semantic-idle-summary-mode))
 
 
 (defun +xclip-save (beg end)
