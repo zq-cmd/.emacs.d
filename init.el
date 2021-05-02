@@ -68,6 +68,8 @@
 (setq view-read-only t)
 
 (with-eval-after-load 'view
+  (define-key view-mode-map (kbd "N") "\M-1\C-xnp<")
+  (define-key view-mode-map (kbd "P") "\M--\C-xnp<")
   (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
 
 (global-set-key (kbd "M-z") 'view-mode)
@@ -135,9 +137,19 @@
 
 (setq flymake-cc-command '+flymake-cc-command)
 
-(setq eglot-ignored-server-capabilites '(:hoverProvider))
+(defun +semantic-inhibit-function ()
+  (not (memq major-mode '(c-mode c++-mode))))
 
-(autoload 'eglot "eglot" "eglot" t)
+(setq semantic-inhibit-functions '(+semantic-inhibit-function))
+
+(setq semantic-new-buffer-setup-functions
+      '((c-mode . semantic-default-c-setup)
+        (c++-mode . semantic-default-c-setup)))
+
+(setq semantic-default-submodes
+      '(global-semanticdb-minor-mode
+        global-semantic-idle-scheduler-mode
+        global-semantic-idle-summary-mode))
 
 
 (defun +xclip-save (beg end)
