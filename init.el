@@ -68,8 +68,8 @@
 (setq view-read-only t)
 
 (with-eval-after-load 'view
-  (define-key view-mode-map (kbd "N") "\M-1\C-xnp<")
-  (define-key view-mode-map (kbd "P") "\M--\C-xnp<")
+  (define-key view-mode-map (kbd "N") "1\C-xnp<")
+  (define-key view-mode-map (kbd "P") "-\C-xnp<")
   (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
 
 (global-set-key (kbd "M-z") 'view-mode)
@@ -137,11 +137,6 @@
   `("gcc" "-x" ,(if (derived-mode-p 'c++-mode) "c++" "c") "-fsyntax-only" "-"))
 
 (setq flymake-cc-command '+flymake-cc-command)
-
-(defun +semantic-inhibit-function ()
-  (not (memq major-mode '(c-mode c++-mode))))
-
-(setq semantic-inhibit-functions '(+semantic-inhibit-function))
 
 (setq semantic-new-buffer-setup-functions
       '((c-mode . semantic-default-c-setup)
