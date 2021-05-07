@@ -1,8 +1,8 @@
 ;;; -*- lexical-binding: t -*-
 
 
-(add-to-list 'load-path "/usr/share/emacs/site-lisp")
 (add-to-list 'load-path (expand-file-name "lib" user-emacs-directory))
+(require '+autoload)
 
 
 (setq visible-bell t)
@@ -65,11 +65,11 @@
 (global-set-key (kbd "M-o") "\C-xo")
 
 
+(setq isearch-lazy-count t)
+
 (setq view-read-only t)
 
 (with-eval-after-load 'view
-  (define-key view-mode-map (kbd "N") "1\C-xnp<")
-  (define-key view-mode-map (kbd "P") "-\C-xnp<")
   (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
 
 (global-set-key (kbd "M-z") 'view-mode)
