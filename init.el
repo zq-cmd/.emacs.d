@@ -175,9 +175,6 @@
 (setq wgrep-auto-save-buffer t
       wgrep-change-readonly-file t)
 
-(autoload 'wgrep-setup "wgrep")
-(add-hook 'grep-setup-hook 'wgrep-setup)
-
 (setq ispell-dictionary "en")
 
 
