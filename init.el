@@ -14,7 +14,7 @@
 
 (load-theme 'modus-vivendi)
 
-(global-set-key (kbd "<f5>") 'tmm-menubar)
+(global-set-key (kbd "<f2>") 'tmm-menubar)
 
 
 (setq confirm-kill-emacs 'y-or-n-p
@@ -90,27 +90,12 @@
 (setq input-method-function '+input-method-function)
 
 
-(defun +completion-in-region (beg end collection &optional predicate)
-  (let* ((enable-recursive-minibuffers t)
-         (prefix (buffer-substring beg end))
-         (choices (all-completions prefix collection predicate))
-         (choice (cond ((null choices) nil)
-                       ((null (cdr choices)) (car choices))
-                       (t (ido-completing-read "complete: " choices)))))
-    (when choice
-      (let ((count 0)
-            (len (length prefix)))
-        (while (not (string-prefix-p (substring prefix count) choice))
-          (setq count (1+ count)))
-        (insert (substring choice (- len count)))))))
+(setq completion-styles '(orderless)
+      orderless-matching-styles '(orderless-regexp)
+      selectrum-refine-candidates-function 'orderless-filter
+      selectrum-highlight-candidates-function 'orderless-highlight-matches)
 
-(defun +completion-at-point (arg)
-  (interactive "*P")
-  (let ((completion-in-region-function '+completion-in-region))
-    (call-interactively (lookup-key `(,(current-local-map) ,(current-global-map))
-                                    (kbd (if arg "M-TAB" "TAB"))))))
-
-(global-set-key (kbd "<f2>") '+completion-at-point)
+(selectrum-mode 1)
 
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
@@ -141,6 +126,8 @@
 (setq semantic-new-buffer-setup-functions
       '((c-mode . semantic-default-c-setup)
         (c++-mode . semantic-default-c-setup)))
+
+(setq eglot-ignored-server-capabilites '(:hoverProvider))
 
 
 (defun +xclip-save (beg end)
@@ -179,7 +166,6 @@
 
 
 (setq org-modules '(org-tempo)
-      org-export-backends '(latex)
       org-use-speed-commands t
       org-special-ctrl-a/e 'reversed)
 
