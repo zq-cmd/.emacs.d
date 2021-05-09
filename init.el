@@ -90,12 +90,15 @@
 (setq input-method-function '+input-method-function)
 
 
-(setq completion-styles '(orderless)
-      orderless-matching-styles '(orderless-regexp)
-      selectrum-refine-candidates-function 'orderless-filter
-      selectrum-highlight-candidates-function 'orderless-highlight-matches)
+(defun +selectrum-filter (query candidates)
+  (let ((regexp (string-join (split-string query) ".*")))
+    (condition-case error
+        (seq-filter (lambda (candidate) (string-match-p regexp candidate))
+                    candidates)
+      (invalid-regexp nil))))
 
-(selectrum-mode 1)
+(setq selectrum-refine-candidates-function '+selectrum-filter
+      completion-in-region-function 'selectrum-completion-in-region)
 
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
