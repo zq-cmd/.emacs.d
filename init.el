@@ -14,8 +14,6 @@
 
 (load-theme 'modus-vivendi)
 
-(global-set-key (kbd "<f2>") 'tmm-menubar)
-
 
 (setq confirm-kill-emacs 'y-or-n-p
       vc-handled-backends '(Git)
@@ -67,22 +65,27 @@
 
 (setq isearch-lazy-count t)
 
+(define-key isearch-mode-map (kbd ".") 'isearch-repeat-forward)
+(define-key isearch-mode-map (kbd ",") 'isearch-repeat-backward)
+
 (setq view-read-only t)
 
 (with-eval-after-load 'view
-  (define-key view-mode-map (kbd "e") 'View-scroll-line-forward))
+  (define-key view-mode-map (kbd "j") 'View-scroll-line-forward)
+  (define-key view-mode-map (kbd "k") 'View-scroll-line-backward))
 
-(global-set-key (kbd "M-z") 'view-mode)
+(global-set-key [+jk] 'view-mode)
 
 (defun +input-method-function (first-char)
   (if (and (eq first-char ?j)
+           (not view-mode)
            (not executing-kbd-macro)
            (not (sit-for 0.1 'no-redisplay)))
       (let ((next-char
              (let (input-method-function)
                (read-event))))
         (if (eq next-char ?k)
-            '(?\M-z)
+            '(+jk)
           (push next-char unread-command-events)
           '(?j)))
     `(,first-char)))
@@ -97,22 +100,30 @@
                     candidates)
       (invalid-regexp nil))))
 
-(setq selectrum-refine-candidates-function '+selectrum-filter
-      completion-in-region-function 'selectrum-completion-in-region)
+(setq selectrum-refine-candidates-function '+selectrum-filter)
+
+(selectrum-mode 1)
 
 (defun +tab-completion-filter (command)
   (if (or (use-region-p)
           (<= (current-column)
               (current-indentation)))
-      command
-    'completion-at-point))
+      'indent-for-tab-command
+    command))
 
 (define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" indent-for-tab-command :filter +tab-completion-filter))
+  '(menu-item "" completion-at-point :filter +tab-completion-filter))
 
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
-    `(menu-item "" c-indent-line-or-region :filter +tab-completion-filter)))
+    `(menu-item "" completion-at-point :filter +tab-completion-filter)))
+
+(with-eval-after-load 'sgml-mode
+  (define-key sgml-mode-map (kbd "TAB")
+    `(menu-item "" emmet-expand-line :filter +tab-completion-filter))
+  (define-key sgml-mode-map (kbd "C-c C-c w") 'emmet-wrap-with-markup)
+  (define-key sgml-mode-map (kbd "C-M-<left>") 'emmet-prev-edit-point)
+  (define-key sgml-mode-map (kbd "C-M-<right>") 'emmet-next-edit-point))
 
 
 (global-set-key (kbd "C-c C-j") 'imenu)
