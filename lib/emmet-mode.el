@@ -1,4 +1,3 @@
-
 ;;; emmet-mode.el --- Unofficial Emmet's support for emacs
 
 ;; Copyright (C) 2014-     Dmitry Mukhutdinov (@flyingleafe  https://github.com/flyingleafe)

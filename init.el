@@ -104,7 +104,7 @@
 
 (selectrum-mode 1)
 
-(defun +tab-completion-filter (command)
+(defun +indent-or-filter (command)
   (if (or (use-region-p)
           (<= (current-column)
               (current-indentation)))
@@ -112,18 +112,17 @@
     command))
 
 (define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" completion-at-point :filter +tab-completion-filter))
+  '(menu-item "" completion-at-point :filter +indent-or-filter))
 
 (with-eval-after-load 'cc-mode
   (define-key c-mode-base-map (kbd "TAB")
-    `(menu-item "" completion-at-point :filter +tab-completion-filter)))
+    '(menu-item "" completion-at-point :filter +indent-or-filter)))
 
-(with-eval-after-load 'sgml-mode
-  (define-key sgml-mode-map (kbd "TAB")
-    `(menu-item "" emmet-expand-line :filter +tab-completion-filter))
-  (define-key sgml-mode-map (kbd "C-c C-c w") 'emmet-wrap-with-markup)
-  (define-key sgml-mode-map (kbd "C-M-<left>") 'emmet-prev-edit-point)
-  (define-key sgml-mode-map (kbd "C-M-<right>") 'emmet-next-edit-point))
+(add-hook 'sgml-mode-hook 'emmet-mode)
+
+(with-eval-after-load 'emmet-mode
+  (define-key emmet-mode-keymap (kbd "TAB")
+    '(menu-item "" emmet-expand-line :filter +indent-or-filter)))
 
 
 (global-set-key (kbd "C-c C-j") 'imenu)
