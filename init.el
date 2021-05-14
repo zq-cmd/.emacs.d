@@ -118,6 +118,8 @@
   (define-key c-mode-base-map (kbd "TAB")
     '(menu-item "" completion-at-point :filter +indent-or-filter)))
 
+(setq emmet-preview-default t)
+
 (add-hook 'sgml-mode-hook 'emmet-mode)
 
 (with-eval-after-load 'emmet-mode
