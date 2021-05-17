@@ -93,14 +93,28 @@
 (setq input-method-function '+input-method-function)
 
 
-(defun +selectrum-filter (query candidates)
+(defun +selectrum-refine (query candidates)
   (let ((regexp (string-join (split-string query) ".*")))
     (condition-case error
         (seq-filter (lambda (candidate) (string-match-p regexp candidate))
                     candidates)
       (invalid-regexp nil))))
 
-(setq selectrum-refine-candidates-function '+selectrum-filter)
+(defun +selectrum-highlight (query candidates)
+  (let ((regexp (string-join (split-string query) ".*")))
+    (condition-case error
+        (mapcar (lambda (candidate)
+                  (if (string-match regexp candidate)
+                      (let ((copyed-candidate (copy-sequence candidate)))
+                        (apply 'font-lock-prepend-text-property
+                               `(,@(match-data) face match ,copyed-candidate))
+                        copyed-candidate)
+                    candidate))
+                candidates)
+      (invalid-regexp candidates))))
+
+(setq selectrum-refine-candidates-function '+selectrum-refine
+      selectrum-highlight-candidates-function '+selectrum-highlight)
 
 (selectrum-mode 1)
 
@@ -147,7 +161,7 @@
 
 (defun +xclip-save (beg end)
   (interactive "r")
-  (call-process-region beg end "xclip"))
+  (call-shell-region beg end "xclip -selection clip"))
 
 (defun +xclip-yank ()
   (interactive "*")
