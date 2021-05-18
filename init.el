@@ -106,20 +106,23 @@
               (invalid-regexp nil)))))
     (cancel-timer +occur-timer)))
 
-(defun +occur ()
+(defun +occur (&optional init)
   (interactive)
-  (let ((+occur-alive-p t)
-        (buffer (get-buffer "*Occur*")))
-    (when buffer
-      (display-buffer buffer))
+  (let ((+occur-alive-p t))
+    (when init (occur init))
     (setq +occur-timer (run-with-idle-timer 0.5 t '+occur-update))
-    (read-from-minibuffer "occur: ")
-    (unless buffer
-      (setq buffer (get-buffer "*Occur*"))
-      (when buffer
-        (display-buffer buffer)))))
+    (read-from-minibuffer "occur: " init))
+  (let ((buffer (get-buffer "*Occur*")))
+    (when buffer
+      (display-buffer buffer))))
+
+(defun +isearch-occur ()
+  (interactive)
+  (isearch-exit)
+  (+occur isearch-string))
 
 (global-set-key (kbd "M-#") '+occur)
+(define-key isearch-mode-map (kbd "M-#") '+isearch-occur)
 
 
 (require 'subr-x)
