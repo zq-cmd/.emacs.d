@@ -109,7 +109,10 @@
 (defun +occur (&optional init)
   (interactive)
   (let ((+occur-alive-p t))
-    (when init (occur init))
+    (when init
+      (condition-case error
+          (occur init)
+        (invalid-regexp nil)))
     (setq +occur-timer (run-with-idle-timer 0.5 t '+occur-update))
     (read-from-minibuffer "occur: " init))
   (let ((buffer (get-buffer "*Occur*")))
@@ -290,6 +293,9 @@
 
 (global-set-key (kbd "M-W") '+xclip-save)
 (global-set-key (kbd "M-Y") '+xclip-yank)
+
+(with-eval-after-load 'diff-mode
+  (define-key diff-mode-map (kbd "M-o") nil))
 
 (setq dired-listing-switches "-alh")
 
