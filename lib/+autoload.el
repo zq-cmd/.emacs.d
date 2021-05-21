@@ -149,6 +149,16 @@ Wrap region with markup.
 
 ;;;***
 
+;;;### (autoloads nil "listify" "listify.el" (0 0 0 0))
+;;; Generated autoloads from listify.el
+
+(autoload 'listify-tab-completion "listify" "\
+Tab completion with `listify-completion-in-region'." t nil)
+
+(register-definition-prefixes "listify" '("listify-"))
+
+;;;***
+
 ;;;### (autoloads nil "wgrep" "wgrep.el" (0 0 0 0))
 ;;; Generated autoloads from wgrep.el
 
