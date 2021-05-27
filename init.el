@@ -47,7 +47,6 @@
   (call-interactively 'repeat))
 
 (global-set-key (kbd "C-z") '+repeat)
-(global-set-key (kbd "C-x C-z") 'suspend-frame)
 
 (repeat-mode 1)
 
@@ -94,27 +93,20 @@
 
 (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
-(defun +indent-or-filter (command)
-  (if (or (use-region-p)
-          (<= (current-column)
-              (current-indentation)))
-      'indent-for-tab-command
-    command))
+(setq +indent-or-completion
+      '(menu-item "" nil :filter
+                  (lambda (_)
+                    (if (or (use-region-p)
+                            (<= (current-column)
+                                (current-indentation)))
+                        'indent-for-tab-command
+                      'completion-at-point))))
 
-(define-key prog-mode-map (kbd "TAB")
-  '(menu-item "" completion-at-point :filter +indent-or-filter))
+(define-key prog-mode-map (kbd "TAB") +indent-or-completion)
 
 (with-eval-after-load 'cc-mode
-  (define-key c-mode-base-map (kbd "TAB")
-    '(menu-item "" completion-at-point :filter +indent-or-filter)))
-
-(setq emmet-preview-default t)
-
-(add-hook 'sgml-mode-hook 'emmet-mode)
-
-(with-eval-after-load 'emmet-mode
-  (define-key emmet-mode-keymap (kbd "TAB")
-    '(menu-item "" emmet-expand-line :filter +indent-or-filter)))
+  (define-key c-mode-base-map (kbd "TAB") +indent-or-completion)
+  (define-key c-mode-base-map [remap indent-for-tab-command] 'c-indent-line-or-region))
 
 
 (global-set-key (kbd "C-c C-j") 'imenu)
@@ -127,10 +119,6 @@
   `("gcc" "-x" ,(if (derived-mode-p 'c++-mode) "c++" "c") "-fsyntax-only" "-"))
 
 (setq flymake-cc-command '+flymake-cc-command)
-
-(setq semantic-new-buffer-setup-functions
-      '((c-mode . semantic-default-c-setup)
-        (c++-mode . semantic-default-c-setup)))
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
 
