@@ -5,6 +5,9 @@
 (require '+autoload)
 
 
+(setq text-quoting-style 'grave)
+(startup--setup-quote-display 'grave)
+
 (setq visible-bell t)
 
 (setq inhibit-splash-screen t)

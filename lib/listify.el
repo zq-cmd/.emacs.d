@@ -1,7 +1,7 @@
 ;;; listify.el --- Yet another completion api implementation. -*- lexical-binding: t -*-
 
 ;;; Commentary:
-;; add this code to your init file:
+;; Add this code to your init file:
 ;; (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
 ;;; Code:
@@ -35,7 +35,7 @@
                     (setq count (1+ count)
                           current (cdr current))))
               (let ((regexp (string-join (split-string query) ".*")))
-                (condition-case error
+                (condition-case nil
                     (let ((count 0)
                           (current listify-collection))
                       (while (and (< count 50) current)
@@ -67,7 +67,7 @@
     (hl-line-highlight)))
 
 (defun listify-exit-minibuffer ()
-  "Select current candidates."
+  "Select current candidate."
   (interactive)
   (delete-region (line-beginning-position) (line-end-position))
   (insert (with-selected-window listify-window
