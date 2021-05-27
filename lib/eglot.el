@@ -95,15 +95,37 @@
   :prefix "eglot-"
   :group 'applications)
 
-(defvar eglot-server-programs '((rust-mode . (eglot-rls "rls"))
-                                (python-mode . ("pyls"))
+(defun eglot-alternatives (alternatives)
+  "Compute server-choosing function for `eglot-server-programs'.
+Each element of ALTERNATIVES is a string PROGRAM or a list of
+strings (PROGRAM ARGS...) where program names an LSP server
+program to start with ARGS.  Returns a function of one
+argument."
+  (lambda (&optional interactive)
+    (let* ((listified (cl-loop for a in alternatives
+                               collect (if (listp a) a (list a))))
+           (available (cl-remove-if-not #'executable-find listified :key #'car)))
+      (cond ((and interactive (cdr available))
+             (let ((chosen (completing-read
+                            "[eglot] More than one server executable available:"
+                            (mapcar #'car available)
+                            nil t nil nil (car (car available)))))
+               (assoc chosen available #'equal)))
+            ((car available))
+            (t
+             (car listified))))))
+
+(defvar eglot-server-programs `((rust-mode . (eglot-rls "rls"))
+                                (python-mode
+                                 . ,(eglot-alternatives '("pyls" "pylsp")))
                                 ((js-mode typescript-mode)
                                  . ("typescript-language-server" "--stdio"))
                                 (sh-mode . ("bash-language-server" "start"))
                                 ((php-mode phps-mode)
                                  . ("php" "vendor/felixfbecker/\
 language-server/bin/php-language-server.php"))
-                                ((c++-mode c-mode) . ("ccls"))
+                                ((c++-mode c-mode) . ,(eglot-alternatives
+                                                       '("clangd" "ccls")))
                                 (((caml-mode :language-id "ocaml")
                                   (tuareg-mode :language-id "ocaml") reason-mode)
                                  . ("ocamllsp"))
@@ -226,6 +248,10 @@ let the buffer grow forever."
   "Non-nil if server-initiated edits should be confirmed with user."
   :type '(choice (const :tag "Don't show confirmation prompt" nil)
                  (symbol :tag "Show confirmation prompt" 'confirm)))
+
+(defcustom eglot-extend-to-xref nil
+  "If non-nil, activate Eglot in cross-referenced non-project files."
+  :type 'boolean)
 
 ;; Customizable via `completion-category-overrides'.
 (when (assoc 'flex completion-styles-alist)
@@ -757,7 +783,6 @@ be guessed."
            ((not guessed-mode)
             (eglot--error "Can't guess mode to manage for `%s'" (current-buffer)))
            (t guessed-mode)))
-         (project (or (project-current) `(transient . ,default-directory)))
          (lang-id-and-guess (eglot--lookup-mode guessed-mode))
          (language-id (car lang-id-and-guess))
          (guess (cdr lang-id-and-guess))
@@ -807,7 +832,24 @@ be guessed."
                         :test #'equal))))
               guess
               (eglot--error "Couldn't guess for `%s'!" managed-mode))))
-    (list managed-mode project class contact language-id)))
+    (list managed-mode (eglot--current-project) class contact language-id)))
+
+(defvar eglot-lsp-context)
+(put 'eglot-lsp-context 'variable-documentation
+     "Dynamically non-nil when searching for projects in LSP context.")
+
+(defvar eglot--servers-by-xrefed-file
+  (make-hash-table :test 'equal :weakness 'value))
+
+(defun eglot--current-project ()
+  "Return a project object for Eglot's LSP purposes.
+This relies on `project-current' and thus on
+`project-find-functions'.  Functions in the latter
+variable (which see) can query the value `eglot-lsp-context' to
+decide whether a given directory is a project containing a
+suitable root directory for a given LSP server's purposes."
+  (let ((eglot-lsp-context t))
+    (or (project-current) `(transient . ,default-directory))))
 
 ;;;###autoload
 (defun eglot (managed-major-mode project class contact language-id
@@ -822,12 +864,14 @@ exchanged periodically to provide enhanced code-analysis via
 `completion-at-point', among others.
 Interactively, the command attempts to guess MANAGED-MAJOR-MODE
 from current buffer, CLASS and CONTACT from
-`eglot-server-programs' and PROJECT from `project-current'.  If
-it can't guess, the user is prompted.  With a single
+`eglot-server-programs' and PROJECT from
+`project-find-functions'.  The search for active projects in this
+context binds `eglot-lsp-context' (which see).
+If it can't guess, the user is prompted.  With a single
 \\[universal-argument] prefix arg, it always prompt for COMMAND.
 With two \\[universal-argument] prefix args, also prompts for
 MANAGED-MAJOR-MODE.
-PROJECT is a project instance as returned by `project-current'.
+PROJECT is a project object as returned by `project-current'.
 CLASS is a subclass of `eglot-lsp-server'.
 CONTACT specifies how to contact the server.  It is a
 keyword-value plist used to initialize CLASS or a plain list as
@@ -1001,8 +1045,8 @@ This docstring appeases checkdoc, that's all."
                               (emacs-pid))
                             ;; Maybe turn trampy `/ssh:foo@bar:/path/to/baz.py'
                             ;; into `/path/to/baz.py', so LSP groks it.
-                            :rootPath (expand-file-name
-                                       (file-local-name default-directory))
+                            :rootPath (file-local-name
+                                       (expand-file-name default-directory))
                             :rootUri (eglot--path-to-uri default-directory)
                             :initializationOptions (eglot-initialization-options
                                                     server)
@@ -1226,24 +1270,31 @@ If optional MARKER, return a marker instead"
 
 (defun eglot--path-to-uri (path)
   "URIfy PATH."
-  (concat "file://" (if (eq system-type 'windows-nt) "/")
-          (url-hexify-string
-           ;; Again watch out for trampy paths.
-           (directory-file-name (file-local-name (file-truename path))) 
-           eglot--uri-path-allowed-chars)))
+  (let ((truepath (file-truename path)))
+    (concat "file://"
+            ;; Add a leading "/" for local MS Windows-style paths.
+            (if (and (eq system-type 'windows-nt)
+                     (not (file-remote-p truepath)))
+                "/")
+            (url-hexify-string
+             ;; Again watch out for trampy paths.
+             (directory-file-name (file-local-name truepath))
+             eglot--uri-path-allowed-chars))))
 
 (defun eglot--uri-to-path (uri)
   "Convert URI to file path, helped by `eglot--current-server'."
   (when (keywordp uri) (setq uri (substring (symbol-name uri) 1)))
-  (let* ((retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
-         (normalized (if (and (eq system-type 'windows-nt)
-                              (cl-plusp (length retval)))
-                         (substring retval 1)
-                       retval))
-         (server (eglot-current-server))
+  (let* ((server (eglot-current-server))
          (remote-prefix (and server
                              (file-remote-p
-                              (project-root (eglot--project server))))))
+                              (project-root (eglot--project server)))))
+         (retval (url-filename (url-generic-parse-url (url-unhex-string uri))))
+         ;; Remove the leading "/" for local MS Windows-style paths.
+         (normalized (if (and (not remote-prefix)
+                              (eq system-type 'windows-nt)
+                              (cl-plusp (length retval)))
+                         (substring retval 1)
+                       retval)))
     (concat remote-prefix normalized)))
 
 (defun eglot--snippet-expansion-fn ()
@@ -1434,9 +1485,9 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
     (unless (eglot--stay-out-of-p 'imenu)
       (add-function :before-until (local 'imenu-create-index-function)
                     #'eglot-imenu))
-    (flymake-mode 1)
-    (eldoc-mode 1)
-    (cl-pushnew (current-buffer) (eglot--managed-buffers eglot--cached-server)))
+    (unless (eglot--stay-out-of-p 'flymake) (flymake-mode 1))
+    (unless (eglot--stay-out-of-p 'eldoc) (eldoc-mode 1))
+    (cl-pushnew (current-buffer) (eglot--managed-buffers (eglot-current-server))))
    (t
     (remove-hook 'after-change-functions 'eglot--after-change t)
     (remove-hook 'before-change-functions 'eglot--before-change t)
@@ -1474,11 +1525,19 @@ Use `eglot-managed-p' to determine if current buffer is managed.")
 
 (defun eglot-current-server ()
   "Return logical EGLOT server for current buffer, nil if none."
-  eglot--cached-server)
+  (setq eglot--cached-server
+        (or eglot--cached-server
+            (cl-find major-mode
+                     (gethash (eglot--current-project) eglot--servers-by-project)
+                     :key #'eglot--major-mode)
+            (and eglot-extend-to-xref
+                 buffer-file-name
+                 (gethash (expand-file-name buffer-file-name) 
+                          eglot--servers-by-xrefed-file)))))
 
 (defun eglot--current-server-or-lose ()
   "Return current logical EGLOT server connection or error."
-  (or eglot--cached-server
+  (or (eglot-current-server)
       (jsonrpc-error "No current JSON-RPC connection")))
 
 (defvar-local eglot--unreported-diagnostics nil
@@ -1495,15 +1554,7 @@ If it is activated, also signal textDocument/didOpen."
   (unless eglot--managed-mode
     ;; Called when `revert-buffer-in-progress-p' is t but
     ;; `revert-buffer-preserve-modes' is nil.
-    (when (and buffer-file-name
-               (or
-                eglot--cached-server
-                (setq eglot--cached-server
-                      (cl-find major-mode
-                               (gethash (or (project-current)
-                                            `(transient . ,default-directory))
-                                        eglot--servers-by-project)
-                               :key #'eglot--major-mode))))
+    (when (and buffer-file-name (eglot-current-server))
       (setq eglot--unreported-diagnostics `(:just-opened . nil))
       (eglot--managed-mode)
       (eglot--signal-textDocument/didOpen))))
@@ -2042,6 +2093,8 @@ Try to visit the target file for a richer summary line."
                  (start-pos (cl-getf start :character))
                  (end-pos (cl-getf (cl-getf range :end) :character)))
             (list name line start-pos (- end-pos start-pos)))))))
+    (setf (gethash (expand-file-name file) eglot--servers-by-xrefed-file)
+          (eglot--current-server-or-lose))
     (xref-make-match summary (xref-make-file-location file line column) length)))
 
 (cl-defmethod xref-backend-identifier-completion-table ((_backend (eql eglot)))
@@ -2686,7 +2739,9 @@ at point.  With prefix argument, prompt for ACTION-KIND."
                    (eglot--glob-compile globPattern t t))
                  watchers))
          (dirs-to-watch
-          (eglot--directories-matched-by-globs default-directory globs)))
+          (delete-dups (mapcar #'file-name-directory
+                               (project-files
+                                (eglot--project server))))))
     (cl-labels
         ((handle-event
           (event)
@@ -2787,38 +2842,6 @@ If NOERROR, return predicate, else erroring function."
   (when (eq ?! (aref arg 1)) (aset arg 1 ?^))
   `(,self () (re-search-forward ,(concat "\\=" arg)) (,next)))
 
-(defun eglot--files-recursively (&optional dir)
-  "Because `directory-files-recursively' isn't complete in 26.3."
-  (cons (setq dir (expand-file-name (or dir default-directory)))
-        (cl-loop with default-directory = dir
-                 with completion-regexp-list = '("^[^.]")
-                 for f in (file-name-all-completions "" dir)
-                 if (file-directory-p f) append (eglot--files-recursively f)
-                 else collect (expand-file-name f))))
-
-(defun eglot--directories-recursively (&optional dir)
-  "Because `directory-files-recursively' isn't complete in 26.3."
-  (cons (setq dir (expand-file-name (or dir default-directory)))
-        (cl-loop with default-directory = dir
-                 with completion-regexp-list = '("^[^.]")
-                 for f in (file-name-all-completions "" dir)
-                 if (file-directory-p f) append (eglot--files-recursively f)
-                 else collect (expand-file-name f))))
-
-(defun eglot--directories-matched-by-globs (dir globs)
-  "Discover subdirectories of DIR with files matched by one of GLOBS.
-Each element of GLOBS is either an uncompiled glob-string or a
-compiled glob."
-  (setq globs (cl-loop for g in globs
-                       collect (if (stringp g) (eglot--glob-compile g t t) g)))
-  (cl-loop for f in (eglot--files-recursively dir)
-           for fdir = (file-name-directory f)
-           when (and
-                 (not (member fdir dirs))
-                 (cl-loop for g in globs thereis (funcall g f)))
-           collect fdir into dirs
-           finally (cl-return (delete-dups dirs))))
-
 
 ;;; Rust-specific
 ;;;
@@ -2902,9 +2925,8 @@ If INTERACTIVE, prompt user for details."
               ((string= system-type "darwin") "config_mac")
               ((string= system-type "windows-nt") "config_win")
               (t "config_linux"))))
-           (project (or (project-current) `(transient . ,default-directory)))
            (workspace
-            (expand-file-name (md5 (project-root project))
+            (expand-file-name (md5 (project-root (eglot--current-project)))
                               (concat user-emacs-directory
                                       "eglot-eclipse-jdt-cache"))))
       (unless jar
