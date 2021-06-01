@@ -111,12 +111,16 @@ BEG, END, COLLECTION, PREDICATE see `completion-in-region-function'."
       (insert (substring-no-properties choice)))))
 
 ;;;###autoload
-(defun listify-tab-completion ()
+(defun listify-tab-completion (arg)
   "Tab completion with `listify-completion-in-region'."
-  (interactive)
-  (let ((completion-in-region-function 'listify-completion-in-region))
-    (call-interactively (lookup-key `(,(current-local-map) ,(current-global-map))
-                                    (kbd "TAB")))))
+  (interactive "P")
+  (let* ((completion-in-region-function 'listify-completion-in-region)
+         (command (lookup-key `(,(current-local-map) ,(current-global-map))
+                              (kbd (if arg "M-TAB" "TAB"))))
+         (command (if (memq command '(indent-for-tab-command c-indent-line-or-region))
+                      'completion-at-point
+                    command)))
+    (call-interactively command)))
 
 (provide 'listify)
 ;;; listify.el ends here

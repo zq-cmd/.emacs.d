@@ -69,8 +69,11 @@
 (setq view-read-only t)
 
 (with-eval-after-load 'view
-  (define-key view-mode-map (kbd "j") 'View-scroll-line-forward)
-  (define-key view-mode-map (kbd "k") 'View-scroll-line-backward))
+  (define-key view-mode-map (kbd "j") 'next-line)
+  (define-key view-mode-map (kbd "k") 'previous-line)
+  (define-key view-mode-map (kbd "h") 'backward-char)
+  (define-key view-mode-map (kbd "l") 'forward-char)
+  (define-key view-mode-map (kbd "q") 'quit-window))
 
 (global-set-key [+jk] 'view-mode)
 
@@ -93,22 +96,6 @@
 
 (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
-(setq +indent-or-completion
-      '(menu-item "" nil :filter
-                  (lambda (_)
-                    (if (or (use-region-p)
-                            (<= (current-column)
-                                (current-indentation)))
-                        'indent-for-tab-command
-                      'completion-at-point))))
-
-(define-key prog-mode-map (kbd "TAB") +indent-or-completion)
-
-(with-eval-after-load 'cc-mode
-  (define-key c-mode-base-map (kbd "TAB") +indent-or-completion)
-  (define-key c-mode-base-map [remap indent-for-tab-command] 'c-indent-line-or-region))
-
-
 (global-set-key (kbd "C-c C-j") 'imenu)
 
 (with-eval-after-load 'flymake
@@ -121,6 +108,10 @@
 (setq flymake-cc-command '+flymake-cc-command)
 
 (setq eglot-ignored-server-capabilites '(:hoverProvider))
+
+(setq company-backends '(company-files company-capf company-dabbrev))
+
+(global-company-mode 1)
 
 
 (defun +xclip-save (beg end)
