@@ -59,78 +59,6 @@
 
 (setq view-read-only t)
 
-(global-set-key [+jk] 'view-mode)
-
-(defun +input-method-function (first-char)
-  (if (and (eq first-char ?j)
-           (not view-mode)
-           (not executing-kbd-macro)
-           (not (sit-for 0.1 'no-redisplay)))
-      (let ((next-char
-             (let (input-method-function)
-               (read-event))))
-        (if (eq next-char ?k)
-            '(+jk)
-          (push next-char unread-command-events)
-          '(?j)))
-    `(,first-char)))
-
-(setq input-method-function '+input-method-function)
-
-(defun +god-char-to-string (char)
-  (or (cdr (assq char '((tab . "TAB")
-                        (?\  . "SPC")
-                        (backspace . "DEL")
-                        (return . "RET"))))
-      (char-to-string char)))
-
-(defun +god-lookup-key (&optional key prev-key)
-  (let* ((key (+god-char-to-string (or key (read-event prev-key))))
-         (trans (cdr (assoc key '(("SPC" . "") ("g" . "M-") ("h" . "C-")))))
-         (keys (if trans
-                   (let* ((prev-key (concat prev-key " " trans))
-                          (key (+god-char-to-string (read-event prev-key))))
-                     (if (and (equal trans "C-") (equal key "g"))
-                         (let* ((prev-key (concat prev-key "M-"))
-                                (key (+god-char-to-string (read-event prev-key))))
-                           (concat prev-key key))
-                       (concat prev-key key)))
-                 (concat prev-key " C-" key)))
-         (seq (read-kbd-macro keys t))
-         (binding (key-binding seq)))
-    (cond ((commandp binding)
-           (setq last-command-event (aref seq (1- (length seq))))
-           binding)
-          ((keymapp binding)
-           (+god-lookup-key (read-event keys) keys))
-          (t
-           (error "God: unknown key binding for `%s'" keys)))))
-
-(defun +god-self-insert ()
-  (interactive)
-  (condition-case err
-      (let* ((keys (this-command-keys-vector))
-             (key (aref keys (- (length keys) 1)))
-             (binding (+god-lookup-key key)))
-        (setq this-command binding
-              real-this-command binding)
-        (if (commandp binding t)
-            (call-interactively binding)
-          (execute-kbd-macro binding)))
-    (error (message (cadr err)))))
-
-(with-eval-after-load 'view
-  (dolist (key '("x" "c" "g" "h"))
-    (define-key view-mode-map (kbd key) '+god-self-insert))
-  (define-key view-mode-map (kbd ".") 'repeat)
-  (define-key view-mode-map (kbd "j") 'View-scroll-line-forward)
-  (define-key view-mode-map (kbd "k") 'View-scroll-line-backward)
-  (define-key view-mode-map (kbd "f") 'View-scroll-page-forward)
-  (define-key view-mode-map (kbd "b") 'View-scroll-page-backward)
-  (define-key view-mode-map (kbd "?") 'View-search-regexp-backward)
-  (define-key view-mode-map (kbd "N") 'View-search-last-regexp-backward))
-
-
 (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
 (global-set-key (kbd "C-c C-j") 'imenu)
