@@ -199,6 +199,146 @@ Start Eglot session for current buffer if there isn't one." nil nil)
 
 ;;;***
 
+;;;### (autoloads nil "evil-command-window" "evil-command-window.el"
+;;;;;;  (0 0 0 0))
+;;; Generated autoloads from evil-command-window.el
+
+(register-definition-prefixes "evil-command-window" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-commands" "evil-commands.el" (0 0 0 0))
+;;; Generated autoloads from evil-commands.el
+
+(register-definition-prefixes "evil-commands" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-common" "evil-common.el" (0 0 0 0))
+;;; Generated autoloads from evil-common.el
+
+(register-definition-prefixes "evil-common" '("bounds-of-evil-" "evil-" "forward-evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-core" "evil-core.el" (0 0 0 0))
+;;; Generated autoloads from evil-core.el
+ (autoload 'evil-mode "evil" nil t)
+
+(register-definition-prefixes "evil-core" '("evil-" "turn-o"))
+
+;;;***
+
+;;;### (autoloads nil "evil-digraphs" "evil-digraphs.el" (0 0 0 0))
+;;; Generated autoloads from evil-digraphs.el
+
+(register-definition-prefixes "evil-digraphs" '("evil-digraph"))
+
+;;;***
+
+;;;### (autoloads nil "evil-ex" "evil-ex.el" (0 0 0 0))
+;;; Generated autoloads from evil-ex.el
+
+(register-definition-prefixes "evil-ex" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-jumps" "evil-jumps.el" (0 0 0 0))
+;;; Generated autoloads from evil-jumps.el
+
+(register-definition-prefixes "evil-jumps" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-macros" "evil-macros.el" (0 0 0 0))
+;;; Generated autoloads from evil-macros.el
+
+(register-definition-prefixes "evil-macros" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-maps" "evil-maps.el" (0 0 0 0))
+;;; Generated autoloads from evil-maps.el
+
+(register-definition-prefixes "evil-maps" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-repeat" "evil-repeat.el" (0 0 0 0))
+;;; Generated autoloads from evil-repeat.el
+
+(register-definition-prefixes "evil-repeat" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-search" "evil-search.el" (0 0 0 0))
+;;; Generated autoloads from evil-search.el
+
+(register-definition-prefixes "evil-search" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-states" "evil-states.el" (0 0 0 0))
+;;; Generated autoloads from evil-states.el
+
+(register-definition-prefixes "evil-states" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "evil-types" "evil-types.el" (0 0 0 0))
+;;; Generated autoloads from evil-types.el
+
+(register-definition-prefixes "evil-types" '("evil-ex-get-optional-register-and-count"))
+
+;;;***
+
+;;;### (autoloads nil "evil-vars" "evil-vars.el" (0 0 0 0))
+;;; Generated autoloads from evil-vars.el
+
+(register-definition-prefixes "evil-vars" '("evil-"))
+
+;;;***
+
+;;;### (autoloads nil "goto-chg" "goto-chg.el" (0 0 0 0))
+;;; Generated autoloads from goto-chg.el
+
+(autoload 'goto-last-change "goto-chg" "\
+Go to the point where the last edit was made in the current buffer.
+Repeat the command to go to the second last edit, etc.
+
+To go back to more recent edit, the reverse of this command, use \\[goto-last-change-reverse]
+or precede this command with \\[universal-argument] - (minus).
+
+It does not go to the same point twice even if there has been many edits
+there. I call the minimal distance between distinguishable edits \"span\".
+Set variable `glc-default-span' to control how close is \"the same point\".
+Default span is 8.
+The span can be changed temporarily with \\[universal-argument] right before \\[goto-last-change]:
+\\[universal-argument] <NUMBER> set current span to that number,
+\\[universal-argument] (no number) multiplies span by 4, starting with default.
+The so set span remains until it is changed again with \\[universal-argument], or the consecutive
+repetition of this command is ended by any other command.
+
+When span is zero (i.e. \\[universal-argument] 0) subsequent \\[goto-last-change] visits each and
+every point of edit and a message shows what change was made there.
+In this case it may go to the same point twice.
+
+This command uses undo information. If undo is disabled, so is this command.
+At times, when undo information becomes too large, the oldest information is
+discarded. See variable `undo-limit'.
+
+\(fn ARG)" t nil)
+
+(autoload 'goto-last-change-reverse "goto-chg" "\
+Go back to more recent changes after \\[goto-last-change] have been used.
+See `goto-last-change' for use of prefix argument.
+
+\(fn ARG)" t nil)
+
+(register-definition-prefixes "goto-chg" '("glc-"))
+
+;;;***
+
 ;;;### (autoloads nil "listify" "listify.el" (0 0 0 0))
 ;;; Generated autoloads from listify.el
 
@@ -211,6 +351,79 @@ Tab completion with `listify-completion-in-region'.
 
 ;;;***
 
+;;;### (autoloads nil "queue" "queue.el" (0 0 0 0))
+;;; Generated autoloads from queue.el
+
+(defalias 'make-queue 'queue-create "\
+Create an empty queue data structure.")
+
+(register-definition-prefixes "queue" '("queue"))
+
+;;;***
+
+;;;### (autoloads nil "undo-tree" "undo-tree.el" (0 0 0 0))
+;;; Generated autoloads from undo-tree.el
+
+(autoload 'undo-tree-mode "undo-tree" "\
+Toggle undo-tree mode.
+With no argument, this command toggles the mode.
+A positive prefix argument turns the mode on.
+A negative prefix argument turns it off.
+
+If called interactively, toggle `Undo-Tree mode'.  If the prefix
+argument is positive, enable the mode, and if it is zero or
+negative, disable the mode.
+
+If called from Lisp, toggle the mode if ARG is `toggle'.  Enable
+the mode if ARG is nil, omitted, or is a positive number.
+Disable the mode if ARG is a negative number.
+
+The mode's hook is called both when the mode is enabled and when
+it is disabled.
+
+Undo-tree-mode replaces Emacs' standard undo feature with a more
+powerful yet easier to use version, that treats the undo history
+as what it is: a tree.
+
+The following keys are available in `undo-tree-mode':
+
+  \\{undo-tree-map}
+
+Within the undo-tree visualizer, the following keys are available:
+
+  \\{undo-tree-visualizer-mode-map}
+
+\(fn &optional ARG)" t nil)
+
+(put 'global-undo-tree-mode 'globalized-minor-mode t)
+
+(defvar global-undo-tree-mode nil "\
+Non-nil if Global Undo-Tree mode is enabled.
+See the `global-undo-tree-mode' command
+for a description of this minor mode.
+Setting this variable directly does not take effect;
+either customize it (see the info node `Easy Customization')
+or call the function `global-undo-tree-mode'.")
+
+(custom-autoload 'global-undo-tree-mode "undo-tree" nil)
+
+(autoload 'global-undo-tree-mode "undo-tree" "\
+Toggle Undo-Tree mode in all buffers.
+With prefix ARG, enable Global Undo-Tree mode if ARG is positive;
+otherwise, disable it.  If called from Lisp, enable the mode if ARG is
+omitted or nil.
+
+Undo-Tree mode is enabled in all buffers where
+`turn-on-undo-tree-mode' would do it.
+
+See `undo-tree-mode' for more information on Undo-Tree mode.
+
+\(fn &optional ARG)" t nil)
+
+(register-definition-prefixes "undo-tree" '("*undo-tree-id-counter*" "buffer-undo-tree" "turn-on-undo-tree-mode" "undo-"))
+
+;;;***
+
 ;;;### (autoloads nil "wgrep" "wgrep.el" (0 0 0 0))
 ;;; Generated autoloads from wgrep.el
 
@@ -220,6 +433,10 @@ Setup wgrep preparation." nil nil)
 (add-hook 'grep-setup-hook 'wgrep-setup)
 
 (register-definition-prefixes "wgrep" '("wgrep-"))
+
+;;;***
+
+;;;### (autoloads nil nil ("evil.el") (0 0 0 0))
 
 ;;;***
 

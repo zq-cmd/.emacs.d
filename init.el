@@ -17,13 +17,13 @@
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-      vc-handled-backends '(Git)
-      vc-make-backup-files t
-      version-control t
-      kept-old-versions 0
-      kept-new-versions 10
-      delete-old-versions t
-      backup-directory-alist '(("." . "~/.bak")))
+    vc-handled-backends '(Git)
+    vc-make-backup-files t
+    version-control t
+    kept-old-versions 0
+    kept-new-versions 10
+    delete-old-versions t
+    backup-directory-alist '(("." . "~/.bak")))
 
 (auto-save-visited-mode 1)
 
@@ -39,6 +39,8 @@
 
 (setq disabled-command-function nil)
 
+(setq view-read-only t)
+
 (repeat-mode 1)
 
 (global-set-key (kbd "C-x U") 'undo-redo)
@@ -46,19 +48,36 @@
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
 (dolist (it '(("0" . delete-window)
-              ("1" . delete-other-windows)
-              ("2" . split-window-below)
-              ("3" . split-window-right)))
-  (define-key other-window-repeat-map (kbd (car it)) (cdr it))
-  (put (cdr it) 'repeat-map 'other-window-repeat-map))
+            ("1" . delete-other-windows)
+            ("2" . split-window-below)
+            ("3" . split-window-right)))
+(define-key other-window-repeat-map (kbd (car it)) (cdr it))
+(put (cdr it) 'repeat-map 'other-window-repeat-map))
 
 (global-set-key (kbd "M-o") "\C-xo")
 
 
-(setq isearch-lazy-count t)
+(setq evil-undo-system 'undo-tree
+      evil-search-module 'evil-search
+      evil-want-fine-undo t
+      evil-want-C-u-scroll t
+      evil-want-C-u-delete t
+      evil-want-keybinding nil
+      evil-want-integration nil)
 
-(setq view-read-only t)
+(autoload 'evil-local-mode "evil" "evil-local-mode" t)
 
+(global-set-key (kbd "C-z") 'evil-local-mode)
+
+(with-eval-after-load 'evil
+  (evil-global-set-key 'replace (kbd "<f1>") 'evil-normal-state)
+  (evil-global-set-key 'insert  (kbd "<f1>") 'evil-force-normal-state))
+
+(setq undo-tree-auto-save-history nil)
+
+(global-undo-tree-mode 1)
+
+
 (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
 (global-set-key (kbd "C-c C-j") 'imenu)
