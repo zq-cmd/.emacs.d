@@ -17,13 +17,13 @@
 
 
 (setq confirm-kill-emacs 'y-or-n-p
-    vc-handled-backends '(Git)
-    vc-make-backup-files t
-    version-control t
-    kept-old-versions 0
-    kept-new-versions 10
-    delete-old-versions t
-    backup-directory-alist '(("." . "~/.bak")))
+      vc-handled-backends '(Git)
+      vc-make-backup-files t
+      version-control t
+      kept-old-versions 0
+      kept-new-versions 10
+      delete-old-versions t
+      backup-directory-alist '(("." . "~/.bak")))
 
 (auto-save-visited-mode 1)
 
