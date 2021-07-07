@@ -48,11 +48,11 @@
 (put 'undo-redo 'repeat-map 'undo-repeat-map)
 
 (dolist (it '(("0" . delete-window)
-            ("1" . delete-other-windows)
-            ("2" . split-window-below)
-            ("3" . split-window-right)))
-(define-key other-window-repeat-map (kbd (car it)) (cdr it))
-(put (cdr it) 'repeat-map 'other-window-repeat-map))
+              ("1" . delete-other-windows)
+              ("2" . split-window-below)
+              ("3" . split-window-right)))
+  (define-key other-window-repeat-map (kbd (car it)) (cdr it))
+  (put (cdr it) 'repeat-map 'other-window-repeat-map))
 
 (global-set-key (kbd "M-o") "\C-xo")
 
@@ -71,7 +71,29 @@
 
 (with-eval-after-load 'evil
   (evil-global-set-key 'replace (kbd "<f1>") 'evil-normal-state)
-  (evil-global-set-key 'insert  (kbd "<f1>") 'evil-force-normal-state))
+  (evil-global-set-key 'insert  (kbd "<f1>") 'evil-force-normal-state)
+
+  (evil-define-text-object +evil-textobj-defun (const &optional beg end type)
+    (cl-destructuring-bind (beg . end)
+        (bounds-of-thing-at-point 'defun)
+      (evil-range beg end 'line)))
+
+  (define-key evil-inner-text-objects-map (kbd "f") '+evil-textobj-defun)
+  (define-key evil-outer-text-objects-map (kbd "f") '+evil-textobj-defun)
+
+  (evil-define-operator +evil-operator-narrow (beg end)
+    :move-point nil
+    (interactive "<r>")
+    (narrow-to-region beg end))
+
+  (evil-define-operator +evil-operator-comment (beg end)
+    :move-point nil
+    (interactive "<r>")
+    (comment-or-uncomment-region beg end))
+
+  (evil-global-set-key 'motion (kbd "g w") 'widen)
+  (evil-global-set-key 'motion (kbd "g n") '+evil-operator-narrow)
+  (evil-global-set-key 'normal (kbd "g c") '+evil-operator-comment))
 
 (setq undo-tree-auto-save-history nil)
 
