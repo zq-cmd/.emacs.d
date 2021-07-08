@@ -54,9 +54,6 @@
   (define-key other-window-repeat-map (kbd (car it)) (cdr it))
   (put (cdr it) 'repeat-map 'other-window-repeat-map))
 
-(global-set-key (kbd "M-o") "\C-xo")
-
-
 (setq evil-undo-system 'undo-tree
       evil-search-module 'evil-search
       evil-want-fine-undo t
@@ -67,12 +64,10 @@
 
 (autoload 'evil-local-mode "evil" "evil-local-mode" t)
 
+(global-set-key (kbd "M-z") [escape])
 (global-set-key (kbd "C-z") 'evil-local-mode)
 
 (with-eval-after-load 'evil
-  (evil-global-set-key 'replace (kbd "<f1>") 'evil-normal-state)
-  (evil-global-set-key 'insert  (kbd "<f1>") 'evil-force-normal-state)
-
   (evil-define-text-object +evil-textobj-defun (const &optional beg end type)
     (cl-destructuring-bind (beg . end)
         (bounds-of-thing-at-point 'defun)
@@ -91,7 +86,6 @@
     (interactive "<r>")
     (comment-or-uncomment-region beg end))
 
-  (evil-global-set-key 'motion (kbd "g w") 'widen)
   (evil-global-set-key 'motion (kbd "g n") '+evil-operator-narrow)
   (evil-global-set-key 'normal (kbd "g c") '+evil-operator-comment))
 
@@ -135,9 +129,6 @@
 
 (global-set-key (kbd "M-W") '+xclip-save)
 (global-set-key (kbd "M-Y") '+xclip-yank)
-
-(with-eval-after-load 'diff-mode
-  (define-key diff-mode-map (kbd "M-o") nil))
 
 (setq dired-listing-switches "-alh")
 
