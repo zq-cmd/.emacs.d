@@ -54,45 +54,6 @@
   (define-key other-window-repeat-map (kbd (car it)) (cdr it))
   (put (cdr it) 'repeat-map 'other-window-repeat-map))
 
-(setq evil-undo-system 'undo-tree
-      evil-search-module 'evil-search
-      evil-want-fine-undo t
-      evil-want-C-u-scroll t
-      evil-want-C-u-delete t
-      evil-want-keybinding nil
-      evil-want-integration nil)
-
-(autoload 'evil-local-mode "evil" "evil-local-mode" t)
-
-(global-set-key (kbd "M-z") [escape])
-(global-set-key (kbd "C-z") 'evil-local-mode)
-
-(with-eval-after-load 'evil
-  (evil-define-text-object +evil-textobj-defun (const &optional beg end type)
-    (cl-destructuring-bind (beg . end)
-        (bounds-of-thing-at-point 'defun)
-      (evil-range beg end 'line)))
-
-  (define-key evil-inner-text-objects-map (kbd "f") '+evil-textobj-defun)
-  (define-key evil-outer-text-objects-map (kbd "f") '+evil-textobj-defun)
-
-  (evil-define-operator +evil-operator-narrow (beg end)
-    :move-point nil
-    (interactive "<r>")
-    (narrow-to-region beg end))
-
-  (evil-define-operator +evil-operator-comment (beg end)
-    :move-point nil
-    (interactive "<r>")
-    (comment-or-uncomment-region beg end))
-
-  (evil-global-set-key 'motion (kbd "g n") '+evil-operator-narrow)
-  (evil-global-set-key 'normal (kbd "g c") '+evil-operator-comment))
-
-(setq undo-tree-auto-save-history nil)
-
-(global-undo-tree-mode 1)
-
 
 (global-set-key (kbd "<f2>") 'listify-tab-completion)
 
